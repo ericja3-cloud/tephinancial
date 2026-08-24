@@ -384,7 +384,7 @@ function SettingsPage() {
           <div>
             <p className="font-semibold">Inteligência Artificial embutida</p>
             <p className="mt-1 text-sm text-muted-foreground">
-              O Tephinancial usa o Gemini via Lovable AI Gateway. Nenhuma configuração ou chave é necessária — está tudo pronto pra você usar.
+              A Tephinancial usa o Gemini via Lovable AI Gateway. Nenhuma configuração ou chave é necessária — está tudo pronto pra você usar.
             </p>
           </div>
         </div>
