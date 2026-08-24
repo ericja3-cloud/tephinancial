@@ -142,10 +142,11 @@
 
 @layer base {
   * { border-color: var(--color-border); }
-  body {
+  html, body {
     background-color: var(--color-background);
     color: var(--color-foreground);
     font-feature-settings: "cv02", "cv03", "cv04", "cv11";
+    overflow-x: hidden;
   }
 }
 
