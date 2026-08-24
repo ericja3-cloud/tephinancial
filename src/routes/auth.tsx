@@ -29,7 +29,7 @@ function AuthPage() {
 
   const handleSignIn = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (email !== "stephani.andreoni@gmail.com") {
+    if (email.toLowerCase().trim() !== "stephani.andreoni@gmail.com") {
       return toast.error("Acesso restrito. E-mail não autorizado.");
     }
     setLoading(true);
