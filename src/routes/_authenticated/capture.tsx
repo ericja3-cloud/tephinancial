@@ -96,6 +96,17 @@ function CapturePage() {
       const txs = result.transacoes || [];
       if (txs.length === 0) throw new Error("Nenhuma transação encontrada no documento.");
       
+const parseDateString = (d: string | null | undefined): string => {
+  if (!d) return new Date().toISOString().slice(0, 10);
+  // Match DD/MM/YYYY or DD-MM-YYYY
+  const brMatch = d.match(/^(\d{2})[\/\-](\d{2})[\/\-](\d{4})$/);
+  if (brMatch) return `${brMatch[3]}-${brMatch[2]}-${brMatch[1]}`;
+  // Fallback to JS parsing
+  const parsed = new Date(d);
+  if (!isNaN(parsed.getTime())) return parsed.toISOString().slice(0, 10);
+  return new Date().toISOString().slice(0, 10);
+};
+
       const newForms: TxForm[] = txs.map(t => {
         const cat = (t.categoria_sugerida && (CATEGORIES as readonly string[]).includes(t.categoria_sugerida) ? t.categoria_sugerida : "Outros") as Category;
         const isPJ = t.tipo_documento === "faturamento_pj";
@@ -108,7 +119,7 @@ function CapturePage() {
           description: t.descricao_servico ?? "",
           establishment: t.estabelecimento ?? "",
           amount: t.valor != null ? String(t.valor) : "0",
-          date: t.data ?? new Date().toISOString().slice(0, 10),
+          date: parseDateString(t.data),
           category: cat,
           classification: (t.classificacao === "PJ" ? "PJ" : "PF") as "PF" | "PJ",
           cardholder: t.portador || "Principal",
