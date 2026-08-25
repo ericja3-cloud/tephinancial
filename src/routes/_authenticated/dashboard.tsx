@@ -188,7 +188,13 @@ function Dashboard() {
         <header className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
           <div>
             <h1 className="text-2xl font-bold tracking-tight md:text-3xl">Olá 👋</h1>
-            <p className="text-sm text-muted-foreground">Aqui está o resumo automático do seu mês.</p>
+            <div className="flex flex-wrap items-center gap-x-2 text-sm text-muted-foreground">
+              <span>Aqui está o resumo automático do seu mês.</span>
+              <span className="hidden sm:inline">·</span>
+              <Button variant="link" size="sm" className="h-auto p-0 text-xs font-bold gap-1 text-primary" asChild>
+                <Link to="/agenda">📅 Ver Agenda de Contas</Link>
+              </Button>
+            </div>
           </div>
           <div className="flex flex-col gap-3 md:flex-row md:items-center">
             <div className="flex items-center justify-between gap-2 rounded-lg border bg-card p-1">
