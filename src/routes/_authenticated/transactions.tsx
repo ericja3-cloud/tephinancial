@@ -144,7 +144,7 @@ function TransactionsPage() {
         category: t.category || "Outros",
         date: t.date || new Date().toISOString().split("T")[0],
         type: t.type || "expense",
-        payment_method: t.payment_method || null,
+        payment_method: t.payment_method === "Cartão de Crédito (Parcelado)" || t.payment_method === "Cartão de Crédito (À Vista)" ? "Cartão de Crédito" : t.payment_method || null,
         target_source: t.target_source || null,
         doc_type: t.doc_type || null,
         classification: t.classification || null,
@@ -153,8 +153,8 @@ function TransactionsPage() {
         source: t.source || "manual",
         sharing_type: t.sharing_type || "private",
         paid_by: t.paid_by || "me",
-        installments_total: t.installments_total || null,
-        installments_current: t.installments_current || null,
+        installments_total: t.payment_method === "Cartão de Crédito (À Vista)" ? null : (t.installments_total || null),
+        installments_current: t.payment_method === "Cartão de Crédito (À Vista)" ? null : (t.installments_current || null),
         is_fixed: t.is_fixed || false,
         is_recurring: t.is_recurring || false,
         notes: t.notes || null,
@@ -431,9 +431,17 @@ function TransactionsPage() {
                       <Check className="h-4 w-4 text-success" />
                     </Button>
                   )}
-                  <Button size="icon" variant="ghost" onClick={() => setEditing(t)} title="Editar">
-                    <Pencil className="h-4 w-4" />
-                  </Button>
+                  <Button size="icon" variant="ghost" onClick={() => {
+                     let method = t.payment_method;
+                     if (method === "Cartão de Crédito") {
+                       method = (t.installments_total && t.installments_total > 1) 
+                         ? "Cartão de Crédito (Parcelado)" 
+                         : "Cartão de Crédito (À Vista)";
+                     }
+                     setEditing({ ...t, payment_method: method });
+                   }} title="Editar">
+                     <Pencil className="h-4 w-4" />
+                   </Button>
                   <AlertDialog>
                     <AlertDialogTrigger asChild>
                       <Button size="icon" variant="ghost" title="Remover">
@@ -523,7 +531,8 @@ function TransactionsPage() {
                       <SelectTrigger><SelectValue /></SelectTrigger>
                       <SelectContent>
                         <SelectItem value="Pix">Pix</SelectItem>
-                        <SelectItem value="Cartão de Crédito">Cartão de Crédito</SelectItem>
+                        <SelectItem value="Cartão de Crédito (À Vista)">Cartão de Crédito (À Vista)</SelectItem>
+                        <SelectItem value="Cartão de Crédito (Parcelado)">Cartão de Crédito (Parcelado)</SelectItem>
                         <SelectItem value="Cartão de Débito">Cartão de Débito</SelectItem>
                         <SelectItem value="Dinheiro">Dinheiro</SelectItem>
                         <SelectItem value="Transferência">Transferência</SelectItem>
@@ -570,18 +579,36 @@ function TransactionsPage() {
                     </div>
                     <div>
                       <Label>Quem pagou?</Label>
-                      <Select value={editing.paid_by || "me"} onValueChange={(v) => setEditing({ ...editing, paid_by: v })}>
+                      <Select 
+                        value={["me", "spouse", "Pai", "Mãe", "Irmã"].includes(editing.paid_by || "me") ? (editing.paid_by || "me") : "custom"} 
+                        onValueChange={(v) => {
+                          if (v === "custom") setEditing({ ...editing, paid_by: "" });
+                          else setEditing({ ...editing, paid_by: v });
+                        }}
+                      >
                         <SelectTrigger><SelectValue /></SelectTrigger>
                         <SelectContent>
                           <SelectItem value="me">Eu paguei</SelectItem>
-                          <SelectItem value="spouse">Parceiro pagou</SelectItem>
+                          <SelectItem value="spouse">Marido</SelectItem>
+                          <SelectItem value="Pai">Pai</SelectItem>
+                          <SelectItem value="Mãe">Mãe</SelectItem>
+                          <SelectItem value="Irmã">Irmã</SelectItem>
+                          <SelectItem value="custom">✍️ Digitar nome...</SelectItem>
                         </SelectContent>
                       </Select>
+                      {!["me", "spouse", "Pai", "Mãe", "Irmã"].includes(editing.paid_by || "me") && (
+                        <Input 
+                          className="mt-2" 
+                          placeholder="Digite o nome de quem pagou..." 
+                          value={editing.paid_by ?? ""} 
+                          onChange={(e) => setEditing({ ...editing, paid_by: e.target.value })} 
+                        />
+                      )}
                     </div>
                   </div>
                 )}
                 
-                {editing.payment_method === "Cartão de Crédito" && (
+                {editing.payment_method === "Cartão de Crédito (Parcelado)" && (
                   <div className="grid gap-3 sm:grid-cols-2 p-3 bg-muted rounded-lg">
                     <div>
                       <Label>Parcela Atual</Label>

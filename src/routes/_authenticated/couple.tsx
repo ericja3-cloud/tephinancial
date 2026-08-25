@@ -178,10 +178,14 @@ function CoupleDashboard() {
       
       const allInserts = [];
       for (const f of forms) {
+        const isCreditCardAVista = f.payment_method === "Cartão de Crédito (À Vista)";
+        const installTotal = isCreditCardAVista ? null : f.installments_total;
+        const installCurrent = isCreditCardAVista ? null : f.installments_current;
+
         const insert = {
           user_id: uid,
           type: f.type,
-          payment_method: f.payment_method,
+          payment_method: f.payment_method === "Cartão de Crédito (Parcelado)" || f.payment_method === "Cartão de Crédito (À Vista)" ? "Cartão de Crédito" : f.payment_method,
           target_source: f.target_source,
           doc_type: f.doc_type,
           classification: f.classification,
@@ -192,15 +196,15 @@ function CoupleDashboard() {
           category: f.category,
           date: f.date,
           source: "upload",
-          status: "confirmado",
+          status: f.status || "confirmado",
           ai_confidence: f.confidence,
           receipt_url: storagePath,
           sharing_type: f.sharing_type || "shared",
           paid_by: f.paid_by || "me",
           is_fixed: f.is_fixed || false,
           is_recurring: f.is_recurring || false,
-          installments_total: f.installments_total,
-          installments_current: f.installments_current,
+          installments_total: installTotal,
+          installments_current: installCurrent,
           notes: f.notes
         };
 
@@ -245,12 +249,16 @@ function CoupleDashboard() {
     mutationFn: async () => {
       const uid = user?.id;
       if (!uid) throw new Error("Não autenticado");
+      const isCreditCardAVista = manualForm.payment_method === "Cartão de Crédito (À Vista)";
+      const installTotal = isCreditCardAVista ? null : (manualForm.installments_total || null);
+      const installCurrent = isCreditCardAVista ? null : (manualForm.installments_current || null);
+
       const insert = {
         user_id: uid,
         type: manualForm.type || "expense",
-        payment_method: manualForm.payment_method || "Pix",
+        payment_method: manualForm.payment_method === "Cartão de Crédito (Parcelado)" || manualForm.payment_method === "Cartão de Crédito (À Vista)" ? "Cartão de Crédito" : manualForm.payment_method || "Pix",
         target_source: manualForm.target_source || null,
-        classification: "PF", // Casa is PF
+        classification: "PF",
         cardholder: manualForm.cardholder || "Principal",
         amount: parseFloat(manualForm.amount as string) || 0,
         description: manualForm.description || manualForm.establishment || "Transação Casa",
@@ -261,8 +269,8 @@ function CoupleDashboard() {
         status: "confirmado",
         sharing_type: manualForm.sharing_type || "shared",
         paid_by: manualForm.paid_by || "me",
-        installments_total: manualForm.installments_total || null,
-        installments_current: manualForm.installments_current || null,
+        installments_total: installTotal,
+        installments_current: installCurrent,
         is_fixed: manualForm.is_fixed || false,
         is_recurring: manualForm.is_recurring || false,
         notes: manualForm.notes || null
@@ -379,18 +387,10 @@ function CoupleDashboard() {
   
   const monthTxs = txs.filter((t) => monthKey(t.date) === thisMonth);
 
-  // Calcs for the Split
   const mySplit = profile?.couple_split_ratio && typeof profile.couple_split_ratio === 'object' && 'me' in profile.couple_split_ratio 
     ? Number((profile.couple_split_ratio as any).me) : 50;
   
   const totalSharedExpenses = monthTxs.filter((t) => t.type === "expense").reduce((a, b) => a + Number(b.amount), 0);
-  
-  // Who paid what?
-  // "me" = paid by the owner of the transaction.
-  // If transaction user_id === my user_id and paid_by === "me", then I paid it.
-  // If transaction user_id === my user_id and paid_by === "spouse", spouse paid it.
-  // If transaction user_id === spouse_id and paid_by === "me", spouse paid it (from their perspective).
-  // "me" means the creator paid it.
   
   let iPaidForShared = 0;
   let spousePaidForShared = 0;
@@ -408,26 +408,16 @@ function CoupleDashboard() {
         else iPaidForShared += Number(t.amount);
       }
     } else if (t.sharing_type === "private" && t.paid_by === "spouse") {
-      // Someone paid for the other's private expense
       if (iCreated) {
-        // I created a private expense but spouse paid. I owe spouse 100%.
         iBorrowedFromSpouse += Number(t.amount);
       } else {
-        // Spouse created a private expense but I paid. Spouse owes me 100%.
         spouseBorrowedFromMe += Number(t.amount);
       }
     }
   });
 
   const myFairShare = totalSharedExpenses * (mySplit / 100);
-  const spouseFairShare = totalSharedExpenses - myFairShare;
-
   const myBalanceShared = iPaidForShared - myFairShare;
-  
-  // Total balance:
-  // If myBalanceShared > 0, spouse owes me.
-  // If spouseBorrowedFromMe > 0, spouse owes me 100% of that.
-  // If iBorrowedFromSpouse > 0, I owe spouse 100% of that.
   const myTotalBalance = myBalanceShared + spouseBorrowedFromMe - iBorrowedFromSpouse;
 
   const splitData = [
@@ -489,7 +479,13 @@ function CoupleDashboard() {
                 )}
                 <div className="flex items-center gap-1">
                   <Button variant="ghost" size="icon" className="h-6 w-6" onClick={() => {
-                    setManualForm({ ...t, amount: String(t.amount) } as any);
+                    let method = t.payment_method;
+                    if (method === "Cartão de Crédito") {
+                      method = (t.installments_total && t.installments_total > 1) 
+                        ? "Cartão de Crédito (Parcelado)" 
+                        : "Cartão de Crédito (À Vista)";
+                    }
+                    setManualForm({ ...t, amount: String(t.amount), payment_method: method } as any);
                     setManualOpen(true);
                   }}>
                     <Pencil className="h-3 w-3" />
@@ -793,13 +789,31 @@ function CoupleDashboard() {
                       </div>
                       <div>
                         <Label className="text-[10px] text-muted-foreground">Quem pagou?</Label>
-                        <Select value={f.paid_by || "me"} onValueChange={(v) => setForms(fs => fs.map(x => x.id === f.id ? { ...x, paid_by: v } : x))}>
+                        <Select 
+                          value={["me", "spouse", "Pai", "Mãe", "Irmã"].includes(f.paid_by || "me") ? (f.paid_by || "me") : "custom"} 
+                          onValueChange={(v) => {
+                            if (v === "custom") setForms(fs => fs.map(x => x.id === f.id ? { ...x, paid_by: "" } : x));
+                            else setForms(fs => fs.map(x => x.id === f.id ? { ...x, paid_by: v } : x));
+                          }}
+                        >
                           <SelectTrigger className="h-7 text-xs mt-1"><SelectValue /></SelectTrigger>
                           <SelectContent>
                             <SelectItem value="me">Eu paguei</SelectItem>
-                            <SelectItem value="spouse">Parceiro pagou</SelectItem>
+                            <SelectItem value="spouse">Marido</SelectItem>
+                            <SelectItem value="Pai">Pai</SelectItem>
+                            <SelectItem value="Mãe">Mãe</SelectItem>
+                            <SelectItem value="Irmã">Irmã</SelectItem>
+                            <SelectItem value="custom">✍️ Digitar...</SelectItem>
                           </SelectContent>
                         </Select>
+                        {!["me", "spouse", "Pai", "Mãe", "Irmã"].includes(f.paid_by || "me") && (
+                          <Input 
+                            className="h-7 text-xs mt-1" 
+                            placeholder="Nome..." 
+                            value={f.paid_by ?? ""} 
+                            onChange={(e) => setForms(fs => fs.map(x => x.id === f.id ? { ...x, paid_by: e.target.value } : x))} 
+                          />
+                        )}
                       </div>
                       <div className="col-span-2">
                         <Label className="text-[10px] text-muted-foreground">Forma de Pgto</Label>
@@ -807,7 +821,8 @@ function CoupleDashboard() {
                           <SelectTrigger className="h-7 text-xs mt-1"><SelectValue /></SelectTrigger>
                           <SelectContent>
                             <SelectItem value="Pix">Pix</SelectItem>
-                            <SelectItem value="Cartão de Crédito">Cartão de Crédito</SelectItem>
+                            <SelectItem value="Cartão de Crédito (À Vista)">Cartão de Crédito (À Vista)</SelectItem>
+                            <SelectItem value="Cartão de Crédito (Parcelado)">Cartão de Crédito (Parcelado)</SelectItem>
                             <SelectItem value="Cartão de Débito">Cartão de Débito</SelectItem>
                             <SelectItem value="Dinheiro">Dinheiro</SelectItem>
                             <SelectItem value="Transferência">Transferência</SelectItem>
@@ -823,7 +838,7 @@ function CoupleDashboard() {
                       </div>
                     </div>
 
-                    {f.payment_method === "Cartão de Crédito" && (
+                    {(f.payment_method === "Cartão de Crédito (Parcelado)") && (
                       <div className="grid grid-cols-2 gap-2 mt-1 bg-muted/50 p-2 rounded">
                         <div>
                           <Label className="text-[10px] text-muted-foreground">Parcela Atual</Label>
@@ -882,13 +897,31 @@ function CoupleDashboard() {
               </div>
               <div>
                 <Label>Quem pagou?</Label>
-                <Select value={manualForm.paid_by || "me"} onValueChange={(v) => setManualForm({ ...manualForm, paid_by: v })}>
+                <Select 
+                  value={["me", "spouse", "Pai", "Mãe", "Irmã"].includes(manualForm.paid_by || "me") ? (manualForm.paid_by || "me") : "custom"} 
+                  onValueChange={(v) => {
+                    if (v === "custom") setManualForm({ ...manualForm, paid_by: "" });
+                    else setManualForm({ ...manualForm, paid_by: v });
+                  }}
+                >
                   <SelectTrigger><SelectValue /></SelectTrigger>
                   <SelectContent>
                     <SelectItem value="me">Eu paguei</SelectItem>
-                    <SelectItem value="spouse">Parceiro pagou</SelectItem>
+                    <SelectItem value="spouse">Marido</SelectItem>
+                    <SelectItem value="Pai">Pai</SelectItem>
+                    <SelectItem value="Mãe">Mãe</SelectItem>
+                    <SelectItem value="Irmã">Irmã</SelectItem>
+                    <SelectItem value="custom">✍️ Digitar nome...</SelectItem>
                   </SelectContent>
                 </Select>
+                {!["me", "spouse", "Pai", "Mãe", "Irmã"].includes(manualForm.paid_by || "me") && (
+                  <Input 
+                    className="mt-2" 
+                    placeholder="Digite o nome de quem pagou..." 
+                    value={manualForm.paid_by ?? ""} 
+                    onChange={(e) => setManualForm({ ...manualForm, paid_by: e.target.value })} 
+                  />
+                )}
               </div>
             </div>
 
@@ -899,7 +932,8 @@ function CoupleDashboard() {
                   <SelectTrigger><SelectValue /></SelectTrigger>
                   <SelectContent>
                     <SelectItem value="Pix">Pix</SelectItem>
-                    <SelectItem value="Cartão de Crédito">Cartão de Crédito</SelectItem>
+                    <SelectItem value="Cartão de Crédito (À Vista)">Cartão de Crédito (À Vista)</SelectItem>
+                    <SelectItem value="Cartão de Crédito (Parcelado)">Cartão de Crédito (Parcelado)</SelectItem>
                     <SelectItem value="Cartão de Débito">Cartão de Débito</SelectItem>
                     <SelectItem value="Dinheiro">Dinheiro</SelectItem>
                     <SelectItem value="Transferência">Transferência</SelectItem>
@@ -912,7 +946,7 @@ function CoupleDashboard() {
               </div>
             </div>
 
-            {manualForm.payment_method === "Cartão de Crédito" && (
+            {manualForm.payment_method === "Cartão de Crédito (Parcelado)" && (
               <div className="grid gap-3 sm:grid-cols-2 p-3 bg-muted rounded-lg">
                 <div>
                   <Label>Parcela Atual</Label>
