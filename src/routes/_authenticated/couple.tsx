@@ -287,19 +287,25 @@ function CoupleDashboard() {
           for (let i = 0; i < insert.installments_total; i++) {
             const date = new Date(insert.date as string);
             date.setMonth(date.getMonth() + i);
+            const dateStr = date.toISOString().split("T")[0];
+            const isFuture = dateStr > new Date().toISOString().split("T")[0];
             inserts.push({
               ...insert,
-              date: date.toISOString().split("T")[0],
+              date: dateStr,
               installments_current: i + 1,
+              status: isFuture ? "pendente_revisao" : insert.status,
             });
           }
         } else if (insert.is_fixed || insert.is_recurring) {
           for (let i = 0; i < 12; i++) {
             const date = new Date(insert.date as string);
             date.setMonth(date.getMonth() + i);
+            const dateStr = date.toISOString().split("T")[0];
+            const isFuture = dateStr > new Date().toISOString().split("T")[0];
             inserts.push({
               ...insert,
-              date: date.toISOString().split("T")[0],
+              date: dateStr,
+              status: isFuture ? "pendente_revisao" : insert.status,
             });
           }
         } else {

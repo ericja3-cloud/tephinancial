@@ -173,19 +173,25 @@ function TransactionsPage() {
           for (let i = 0; i < payload.installments_total; i++) {
             const date = new Date(payload.date);
             date.setMonth(date.getMonth() + i);
+            const dateStr = date.toISOString().split("T")[0];
+            const isFuture = dateStr > new Date().toISOString().split("T")[0];
             inserts.push({
               ...basePayload,
-              date: date.toISOString().split("T")[0],
+              date: dateStr,
               installments_current: i + 1,
+              status: isFuture ? "pendente_revisao" : basePayload.status,
             });
           }
         } else if (payload.is_fixed || payload.is_recurring) {
           for (let i = 0; i < 12; i++) {
             const date = new Date(payload.date);
             date.setMonth(date.getMonth() + i);
+            const dateStr = date.toISOString().split("T")[0];
+            const isFuture = dateStr > new Date().toISOString().split("T")[0];
             inserts.push({
               ...basePayload,
-              date: date.toISOString().split("T")[0],
+              date: dateStr,
+              status: isFuture ? "pendente_revisao" : basePayload.status,
             });
           }
         } else {
