@@ -366,9 +366,13 @@ const parseDateString = (d: string | null | undefined): string => {
           </div>
           
           <div className="grid gap-6 md:grid-cols-[200px_1fr] min-w-0">
-            {previewUrl && <img src={previewUrl} alt="preview" className="sticky top-6 max-h-[500px] w-full max-w-full rounded-xl border object-contain" />}
+            {previewUrl && (
+              <div className="md:sticky md:top-6 self-start">
+                <img src={previewUrl} alt="preview" className="max-h-[300px] md:max-h-[500px] w-full max-w-full rounded-xl border object-contain" />
+              </div>
+            )}
             
-            <div className="flex flex-col gap-3 min-w-0">
+            <div className="flex flex-col gap-3 min-w-0 max-h-[65vh] overflow-y-auto pr-1">
               {forms.map((f, i) => (
                 <div key={f.id} className="flex flex-col gap-3 rounded-lg border bg-card p-4 shadow-sm">
                   <div className="flex items-start justify-between">
