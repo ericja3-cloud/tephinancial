@@ -365,10 +365,10 @@ const parseDateString = (d: string | null | undefined): string => {
             </div>
           </div>
           
-          <div className="grid gap-6 md:grid-cols-[200px_1fr]">
-            {previewUrl && <img src={previewUrl} alt="preview" className="sticky top-6 max-h-[500px] w-full rounded-xl border object-contain" />}
+          <div className="grid gap-6 md:grid-cols-[200px_1fr] min-w-0">
+            {previewUrl && <img src={previewUrl} alt="preview" className="sticky top-6 max-h-[500px] w-full max-w-full rounded-xl border object-contain" />}
             
-            <div className="flex flex-col gap-3">
+            <div className="flex flex-col gap-3 min-w-0">
               {forms.map((f, i) => (
                 <div key={f.id} className="flex flex-col gap-3 rounded-lg border bg-card p-4 shadow-sm">
                   <div className="flex items-start justify-between">
@@ -388,10 +388,10 @@ const parseDateString = (d: string | null | undefined): string => {
                   </div>
                   
                   <div className="grid grid-cols-2 gap-3 sm:grid-cols-4 mt-2 pt-3 border-t">
-                    <div>
-                      <label className="text-xs text-muted-foreground mb-1 block">Conta / Cartão</label>
+                    <div className="min-w-0">
+                      <label className="text-xs text-muted-foreground mb-1 block truncate">Conta / Cartão</label>
                       <select 
-                        className="w-full h-8 rounded-md border border-input bg-background px-2 py-1 text-xs"
+                        className="w-full h-8 rounded-md border border-input bg-background px-2 py-1 text-xs truncate"
                         value={userCards.includes(f.cardholder) ? f.cardholder : "Outros"}
                         onChange={(e) => {
                           const val = e.target.value;
@@ -411,10 +411,10 @@ const parseDateString = (d: string | null | undefined): string => {
                         />
                       )}
                     </div>
-                    <div>
-                      <label className="text-xs text-muted-foreground mb-1 block">Status</label>
+                    <div className="min-w-0">
+                      <label className="text-xs text-muted-foreground mb-1 block truncate">Status</label>
                       <select 
-                        className="w-full h-8 rounded-md border border-input bg-background px-2 py-1 text-xs"
+                        className="w-full h-8 rounded-md border border-input bg-background px-2 py-1 text-xs truncate"
                         value={f.status}
                         onChange={(e) => setForms(fs => fs.map(x => x.id === f.id ? { ...x, status: e.target.value as "pago" | "pendente_revisao" } : x))}
                       >
@@ -422,8 +422,8 @@ const parseDateString = (d: string | null | undefined): string => {
                         <option value="pendente_revisao">A Pagar</option>
                       </select>
                     </div>
-                    <div>
-                      <label className="text-xs text-muted-foreground mb-1 block">Parcela atual</label>
+                    <div className="min-w-0">
+                      <label className="text-xs text-muted-foreground mb-1 block truncate">Parcela atual</label>
                       <input 
                         type="number" 
                         placeholder="Ex: 1" 
@@ -432,8 +432,8 @@ const parseDateString = (d: string | null | undefined): string => {
                         onChange={(e) => setForms(fs => fs.map(x => x.id === f.id ? { ...x, installments_current: parseInt(e.target.value) || null } : x))}
                       />
                     </div>
-                    <div>
-                      <label className="text-xs text-muted-foreground mb-1 block">Total parcelas</label>
+                    <div className="min-w-0">
+                      <label className="text-xs text-muted-foreground mb-1 block truncate">Total parcelas</label>
                       <input 
                         type="number" 
                         placeholder="Ex: 12" 

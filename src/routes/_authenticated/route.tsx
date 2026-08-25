@@ -1,7 +1,7 @@
 import { createFileRoute, Outlet, redirect, Link, useRouter, useLocation } from "@tanstack/react-router";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
-import { LayoutDashboard, Camera, ListChecks, Mail, Settings as SettingsIcon, LogOut, Zap, Menu, HeartHandshake, Calendar } from "lucide-react";
+import { LayoutDashboard, Camera, ListChecks, Mail, Settings as SettingsIcon, LogOut, Zap, Menu, HeartHandshake, Calendar, BookOpen } from "lucide-react";
 import { useState } from "react";
 import { cn } from "@/lib/utils";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
@@ -20,9 +20,11 @@ export const Route = createFileRoute("/_authenticated")({
 const NAV = [
   { to: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
   { to: "/agenda", label: "Agenda de Contas", icon: Calendar },
+  { to: "/statement-upload", label: "Importar Extrato", icon: Zap },
   { to: "/couple", label: "Finanças Casal", icon: HeartHandshake },
   { to: "/capture", label: "Capturar", icon: Camera },
   { to: "/transactions", label: "Transações", icon: ListChecks },
+  { to: "/manual", label: "Manual de Uso", icon: BookOpen },
   { to: "/email-setup", label: "Conectar e-mail", icon: Mail },
   { to: "/settings", label: "Configurações", icon: SettingsIcon },
 ] as const;

@@ -13,12 +13,15 @@ import { Route as AuthRouteImport } from './routes/auth'
 import { Route as AuthenticatedRouteRouteImport } from './routes/_authenticated/route'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as AuthenticatedTransactionsRouteImport } from './routes/_authenticated/transactions'
+import { Route as AuthenticatedStatementUploadRouteImport } from './routes/_authenticated/statement-upload'
 import { Route as AuthenticatedSettingsRouteImport } from './routes/_authenticated/settings'
+import { Route as AuthenticatedManualRouteImport } from './routes/_authenticated/manual'
 import { Route as AuthenticatedEmailSetupRouteImport } from './routes/_authenticated/email-setup'
 import { Route as AuthenticatedDashboardRouteImport } from './routes/_authenticated/dashboard'
 import { Route as AuthenticatedCoupleRouteImport } from './routes/_authenticated/couple'
 import { Route as AuthenticatedChatRouteImport } from './routes/_authenticated/chat'
 import { Route as AuthenticatedCaptureRouteImport } from './routes/_authenticated/capture'
+import { Route as AuthenticatedAgendaRouteImport } from './routes/_authenticated/agenda'
 import { Route as ApiPublicInboundEmailRouteImport } from './routes/api/public/inbound-email'
 
 const AuthRoute = AuthRouteImport.update({
@@ -41,9 +44,20 @@ const AuthenticatedTransactionsRoute =
     path: '/transactions',
     getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
+const AuthenticatedStatementUploadRoute =
+  AuthenticatedStatementUploadRouteImport.update({
+    id: '/statement-upload',
+    path: '/statement-upload',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
 const AuthenticatedSettingsRoute = AuthenticatedSettingsRouteImport.update({
   id: '/settings',
   path: '/settings',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
+const AuthenticatedManualRoute = AuthenticatedManualRouteImport.update({
+  id: '/manual',
+  path: '/manual',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
 const AuthenticatedEmailSetupRoute = AuthenticatedEmailSetupRouteImport.update({
@@ -71,6 +85,11 @@ const AuthenticatedCaptureRoute = AuthenticatedCaptureRouteImport.update({
   path: '/capture',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
+const AuthenticatedAgendaRoute = AuthenticatedAgendaRouteImport.update({
+  id: '/agenda',
+  path: '/agenda',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
 const ApiPublicInboundEmailRoute = ApiPublicInboundEmailRouteImport.update({
   id: '/api/public/inbound-email',
   path: '/api/public/inbound-email',
@@ -80,24 +99,30 @@ const ApiPublicInboundEmailRoute = ApiPublicInboundEmailRouteImport.update({
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/auth': typeof AuthRoute
+  '/agenda': typeof AuthenticatedAgendaRoute
   '/capture': typeof AuthenticatedCaptureRoute
   '/chat': typeof AuthenticatedChatRoute
   '/couple': typeof AuthenticatedCoupleRoute
   '/dashboard': typeof AuthenticatedDashboardRoute
   '/email-setup': typeof AuthenticatedEmailSetupRoute
+  '/manual': typeof AuthenticatedManualRoute
   '/settings': typeof AuthenticatedSettingsRoute
+  '/statement-upload': typeof AuthenticatedStatementUploadRoute
   '/transactions': typeof AuthenticatedTransactionsRoute
   '/api/public/inbound-email': typeof ApiPublicInboundEmailRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/auth': typeof AuthRoute
+  '/agenda': typeof AuthenticatedAgendaRoute
   '/capture': typeof AuthenticatedCaptureRoute
   '/chat': typeof AuthenticatedChatRoute
   '/couple': typeof AuthenticatedCoupleRoute
   '/dashboard': typeof AuthenticatedDashboardRoute
   '/email-setup': typeof AuthenticatedEmailSetupRoute
+  '/manual': typeof AuthenticatedManualRoute
   '/settings': typeof AuthenticatedSettingsRoute
+  '/statement-upload': typeof AuthenticatedStatementUploadRoute
   '/transactions': typeof AuthenticatedTransactionsRoute
   '/api/public/inbound-email': typeof ApiPublicInboundEmailRoute
 }
@@ -106,12 +131,15 @@ export interface FileRoutesById {
   '/': typeof IndexRoute
   '/_authenticated': typeof AuthenticatedRouteRouteWithChildren
   '/auth': typeof AuthRoute
+  '/_authenticated/agenda': typeof AuthenticatedAgendaRoute
   '/_authenticated/capture': typeof AuthenticatedCaptureRoute
   '/_authenticated/chat': typeof AuthenticatedChatRoute
   '/_authenticated/couple': typeof AuthenticatedCoupleRoute
   '/_authenticated/dashboard': typeof AuthenticatedDashboardRoute
   '/_authenticated/email-setup': typeof AuthenticatedEmailSetupRoute
+  '/_authenticated/manual': typeof AuthenticatedManualRoute
   '/_authenticated/settings': typeof AuthenticatedSettingsRoute
+  '/_authenticated/statement-upload': typeof AuthenticatedStatementUploadRoute
   '/_authenticated/transactions': typeof AuthenticatedTransactionsRoute
   '/api/public/inbound-email': typeof ApiPublicInboundEmailRoute
 }
@@ -120,24 +148,30 @@ export interface FileRouteTypes {
   fullPaths:
     | '/'
     | '/auth'
+    | '/agenda'
     | '/capture'
     | '/chat'
     | '/couple'
     | '/dashboard'
     | '/email-setup'
+    | '/manual'
     | '/settings'
+    | '/statement-upload'
     | '/transactions'
     | '/api/public/inbound-email'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
     | '/auth'
+    | '/agenda'
     | '/capture'
     | '/chat'
     | '/couple'
     | '/dashboard'
     | '/email-setup'
+    | '/manual'
     | '/settings'
+    | '/statement-upload'
     | '/transactions'
     | '/api/public/inbound-email'
   id:
@@ -145,12 +179,15 @@ export interface FileRouteTypes {
     | '/'
     | '/_authenticated'
     | '/auth'
+    | '/_authenticated/agenda'
     | '/_authenticated/capture'
     | '/_authenticated/chat'
     | '/_authenticated/couple'
     | '/_authenticated/dashboard'
     | '/_authenticated/email-setup'
+    | '/_authenticated/manual'
     | '/_authenticated/settings'
+    | '/_authenticated/statement-upload'
     | '/_authenticated/transactions'
     | '/api/public/inbound-email'
   fileRoutesById: FileRoutesById
@@ -192,11 +229,25 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedTransactionsRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/statement-upload': {
+      id: '/_authenticated/statement-upload'
+      path: '/statement-upload'
+      fullPath: '/statement-upload'
+      preLoaderRoute: typeof AuthenticatedStatementUploadRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/_authenticated/settings': {
       id: '/_authenticated/settings'
       path: '/settings'
       fullPath: '/settings'
       preLoaderRoute: typeof AuthenticatedSettingsRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/manual': {
+      id: '/_authenticated/manual'
+      path: '/manual'
+      fullPath: '/manual'
+      preLoaderRoute: typeof AuthenticatedManualRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
     '/_authenticated/email-setup': {
@@ -234,6 +285,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedCaptureRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/agenda': {
+      id: '/_authenticated/agenda'
+      path: '/agenda'
+      fullPath: '/agenda'
+      preLoaderRoute: typeof AuthenticatedAgendaRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/api/public/inbound-email': {
       id: '/api/public/inbound-email'
       path: '/api/public/inbound-email'
@@ -245,22 +303,28 @@ declare module '@tanstack/react-router' {
 }
 
 interface AuthenticatedRouteRouteChildren {
+  AuthenticatedAgendaRoute: typeof AuthenticatedAgendaRoute
   AuthenticatedCaptureRoute: typeof AuthenticatedCaptureRoute
   AuthenticatedChatRoute: typeof AuthenticatedChatRoute
   AuthenticatedCoupleRoute: typeof AuthenticatedCoupleRoute
   AuthenticatedDashboardRoute: typeof AuthenticatedDashboardRoute
   AuthenticatedEmailSetupRoute: typeof AuthenticatedEmailSetupRoute
+  AuthenticatedManualRoute: typeof AuthenticatedManualRoute
   AuthenticatedSettingsRoute: typeof AuthenticatedSettingsRoute
+  AuthenticatedStatementUploadRoute: typeof AuthenticatedStatementUploadRoute
   AuthenticatedTransactionsRoute: typeof AuthenticatedTransactionsRoute
 }
 
 const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
+  AuthenticatedAgendaRoute: AuthenticatedAgendaRoute,
   AuthenticatedCaptureRoute: AuthenticatedCaptureRoute,
   AuthenticatedChatRoute: AuthenticatedChatRoute,
   AuthenticatedCoupleRoute: AuthenticatedCoupleRoute,
   AuthenticatedDashboardRoute: AuthenticatedDashboardRoute,
   AuthenticatedEmailSetupRoute: AuthenticatedEmailSetupRoute,
+  AuthenticatedManualRoute: AuthenticatedManualRoute,
   AuthenticatedSettingsRoute: AuthenticatedSettingsRoute,
+  AuthenticatedStatementUploadRoute: AuthenticatedStatementUploadRoute,
   AuthenticatedTransactionsRoute: AuthenticatedTransactionsRoute,
 }
 
