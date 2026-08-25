@@ -214,8 +214,52 @@ const parseDateString = (d: string | null | undefined): string => {
         }
       });
 
-      const { error } = await supabase.from("transactions").insert(allInserts);
-      if (error) throw error;
+      // 1. Fetch recent transactions to check for duplicates
+      const { data: existingTxs, error: fetchErr } = await supabase
+        .from("transactions")
+        .select("*")
+        .eq("user_id", uid);
+      if (fetchErr) throw fetchErr;
+
+      const inserts: any[] = [];
+      const updates: { id: string; receipt_url: string; status: string }[] = [];
+
+      allInserts.forEach(item => {
+        // Find matching transaction: same date, same amount, same type
+        const match = existingTxs?.find(et => 
+          et.date === item.date &&
+          Math.abs(Number(et.amount) - Number(item.amount)) < 0.01 &&
+          et.type === item.type
+        );
+
+        if (match) {
+          updates.push({
+            id: match.id,
+            receipt_url: item.receipt_url || match.receipt_url,
+            status: "confirmado", // Mark as paid since we have the comprovante
+          });
+        } else {
+          inserts.push(item);
+        }
+      });
+
+      // Execute updates
+      for (const upd of updates) {
+        await supabase
+          .from("transactions")
+          .update({ receipt_url: upd.receipt_url, status: upd.status })
+          .eq("id", upd.id);
+      }
+
+      // Execute inserts
+      if (inserts.length > 0) {
+        const { error } = await supabase.from("transactions").insert(inserts);
+        if (error) throw error;
+      }
+
+      if (updates.length > 0) {
+        toast.success(`${updates.length} comprovante(s) conciliados com contas existentes! 🎉`);
+      }
 
       // Send WhatsApp notification if configured
       try {
