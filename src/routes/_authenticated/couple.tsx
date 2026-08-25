@@ -266,7 +266,7 @@ function CoupleDashboard() {
         category: manualForm.category || "Outros",
         date: manualForm.date,
         source: "manual",
-        status: "confirmado",
+        status: manualForm.status ? manualForm.status : ((manualForm.date && manualForm.date > new Date().toISOString().split("T")[0]) || manualForm.is_fixed || manualForm.is_recurring ? "pendente_revisao" : "confirmado"),
         sharing_type: manualForm.sharing_type || "shared",
         paid_by: manualForm.paid_by || "me",
         installments_total: installTotal,

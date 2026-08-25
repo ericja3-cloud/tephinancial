@@ -148,7 +148,7 @@ function TransactionsPage() {
         doc_type: t.doc_type || null,
         classification: t.classification || null,
         cardholder: t.cardholder || null,
-        status: "confirmado",
+        status: t.status ? t.status : ((t.date && t.date > new Date().toISOString().split("T")[0]) || t.is_fixed || t.is_recurring ? "pendente_revisao" : "confirmado"),
         source: t.source || "manual",
         sharing_type: t.sharing_type || "private",
         paid_by: t.paid_by || "me",
