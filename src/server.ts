@@ -2,6 +2,7 @@ import "./lib/error-capture";
 
 import { createRequestHandler } from "@tanstack/react-start/server";
 import { createRouter } from "./router";
+import "tslib";
 import "tslib/tslib.js";
 import "tslib/modules/index.js";
 import { consumeLastCapturedError } from "./lib/error-capture";
