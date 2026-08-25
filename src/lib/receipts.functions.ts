@@ -56,7 +56,7 @@ export async function extractTransactionsFromBlob(file: Blob): Promise<ExtractRe
   // Usando o provedor oficial do Google no Vercel AI SDK
   const { createGoogleGenerativeAI } = await import('@ai-sdk/google');
   const google = createGoogleGenerativeAI({ apiKey: key });
-  const model = google("gemini-1.5-flash");
+  const model = google("gemini-3.5-flash");
 
   const base64Data = buf.toString("base64");
 
