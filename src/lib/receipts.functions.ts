@@ -58,6 +58,8 @@ export async function extractTransactionsFromBlob(file: Blob): Promise<ExtractRe
   const google = createGoogleGenerativeAI({ apiKey: key });
   const model = google("gemini-3.5-flash");
 
+  const base64Data = buf.toString("base64");
+
   const prompt =
     "Você é um assistente financeiro de alta precisão. Analise a imagem ou texto do documento (pode ser um recibo único ou uma fatura de cartão com dezenas de compras). Extraia TODAS as transações encontradas. Para cada transação, identifique se trata-se de uma DESPESA pessoal/comercial ou se é uma NOTA FISCAL DE SERVIÇO QUE PRECISO EMITIR/FATURAR. Classifique a transação entre 'PF' (Finanças Pessoais) ou 'PJ' (Finanças Empresariais). Identifique também o 'portador' (nome do portador do cartão, final do cartão ou 'Principal' caso não identifique adicional). Se for uma compra de mercado, conta de luz/água ou despesa conjunta, defina 'propriedade' como 'casa'. Retorne estritamente JSON contendo um array 'transacoes' preenchendo os campos descritos no schema.";
 
@@ -71,8 +73,8 @@ export async function extractTransactionsFromBlob(file: Blob): Promise<ExtractRe
           content: [
             { type: "text", text: prompt },
             mime.startsWith("image/")
-              ? { type: "image", image: buf }
-              : { type: "file", data: buf, mimeType: mime },
+              ? { type: "image", image: base64Data }
+              : { type: "file", data: base64Data, mimeType: mime },
           ],
         },
       ],
