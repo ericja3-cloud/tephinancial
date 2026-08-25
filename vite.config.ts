@@ -15,5 +15,8 @@ export default defineConfig({
   ],
   server: {
     port: 8080,
+  },
+  ssr: {
+    noExternal: ['@supabase/supabase-js', '@supabase/auth-js', 'tslib'],
   }
 });
