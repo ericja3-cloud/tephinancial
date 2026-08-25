@@ -73,18 +73,18 @@ function AgendaPage() {
     },
   });
 
-  // Toggle status to "confirmado" (paid)
-  const payMutation = useMutation({
-    mutationFn: async (id: string) => {
+  // Update transaction status
+  const updateStatusMutation = useMutation({
+    mutationFn: async ({ id, status }: { id: string; status: "confirmado" | "pendente_revisao" }) => {
       const { error } = await supabase
         .from("transactions")
-        .update({ status: "confirmado" })
+        .update({ status })
         .eq("id", id);
       if (error) throw error;
     },
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ["transactions"] });
-      toast.success("Conta marcada como PAGA! 🎉");
+      toast.success("Status da conta atualizado! 🚀");
       setSelectedDayTxs(null);
     },
     onError: (err) => {
@@ -474,9 +474,9 @@ function AgendaPage() {
                         size="sm" 
                         variant="outline" 
                         className="h-8 border-success/30 hover:bg-success/15 hover:text-success gap-1 text-success-foreground" 
-                        onClick={() => payMutation.mutate(b.id)}
+                        onClick={() => updateStatusMutation.mutate({ id: b.id, status: "confirmado" })}
                       >
-                        <Check className="h-3.5 w-3.5" /> Marcar Pago
+                        <Check className="h-3.5 w-3.5" /> Já Paguei
                       </Button>
                     </div>
                   </div>
@@ -516,21 +516,31 @@ function AgendaPage() {
 
                   <div className="flex items-center gap-3 shrink-0">
                     {!b.isCardReminder && (
-                      <>
+                      <div className="flex flex-col items-end gap-1.5">
                         <span className="font-semibold text-sm">{brl(b.amount)}</span>
-                        {b.status === "confirmado" ? (
-                          <Badge variant="outline" className="border-success/35 bg-success/10 text-success text-[10px]">PAGA</Badge>
-                        ) : (
-                          <Button 
-                            size="sm" 
-                            variant="outline" 
-                            className="h-7 border-success/30 hover:bg-success/15 hover:text-success text-success-foreground text-xs gap-1"
-                            onClick={() => payMutation.mutate(b.id)}
+                        <div className="flex items-center gap-1 bg-muted p-0.5 rounded-md">
+                          <button
+                            className={`px-2 py-1 text-[10px] font-bold rounded-sm transition-all ${
+                              b.status === "confirmado"
+                                ? "bg-success text-success-foreground shadow-sm"
+                                : "text-muted-foreground hover:text-foreground"
+                            }`}
+                            onClick={() => updateStatusMutation.mutate({ id: b.id, status: "confirmado" })}
                           >
-                            <Check className="h-3 w-3" /> Pagar
-                          </Button>
-                        )}
-                      </>
+                            Já Paguei
+                          </button>
+                          <button
+                            className={`px-2 py-1 text-[10px] font-bold rounded-sm transition-all ${
+                              b.status === "pendente_revisao"
+                                ? "bg-warning text-warning-foreground shadow-sm"
+                                : "text-muted-foreground hover:text-foreground"
+                            }`}
+                            onClick={() => updateStatusMutation.mutate({ id: b.id, status: "pendente_revisao" })}
+                          >
+                            Vou Pagar
+                          </button>
+                        </div>
+                      </div>
                     )}
                     {b.isCardReminder && (
                       <span className="text-xs text-muted-foreground italic">Lembrete Automático</span>
