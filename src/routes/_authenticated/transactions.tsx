@@ -399,6 +399,11 @@ function TransactionsPage() {
                     {t.classification === "PJ" && (
                       <Badge variant="outline" className="border-purple-500/30 bg-purple-500/10 text-purple-600 px-1.5 py-0 text-[10px]">PJ</Badge>
                     )}
+                    {(t.sharing_type === "shared" || t.paid_by === "spouse") && (
+                      <Badge variant="outline" className="border-rose-500/30 bg-rose-500/10 text-rose-600 gap-1 px-1.5 py-0 text-[10px]">
+                        👥 Casal
+                      </Badge>
+                    )}
                     {t.cardholder && (
                       <Badge variant="outline" className="px-1.5 py-0 text-[10px]">{t.cardholder}</Badge>
                     )}
