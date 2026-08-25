@@ -67,6 +67,8 @@ export async function extractTransactionsFromBlob(file: Blob): Promise<ExtractRe
     const { object } = await generateObject({
       model,
       schema: ExtractSchema,
+      maxRetries: 1,
+      abortSignal: AbortSignal.timeout(15000),
       messages: [
         {
           role: "user",
