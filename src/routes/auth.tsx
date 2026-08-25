@@ -47,10 +47,10 @@ function AuthPage() {
       <div className="absolute inset-x-0 top-0 -z-10 h-[420px] bg-gradient-to-b from-primary/15 to-transparent" />
       <div className="w-full max-w-md">
         <Link to="/" className="mb-6 flex items-center justify-center gap-2">
-          <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-primary text-primary-foreground">
-            <Wallet className="h-5 w-5" />
+          <div className="mb-8 flex items-center justify-center space-x-3">
+            <img src="/logo.png" alt="Tephinancial Logo" className="h-10 w-auto object-contain rounded-lg shadow-sm" />
+            <span className="text-2xl font-bold tracking-tight">Tephinancial</span>
           </div>
-          <span className="text-xl font-semibold">Tephinancial</span>
         </Link>
 
         <Card className="border shadow-elevated">

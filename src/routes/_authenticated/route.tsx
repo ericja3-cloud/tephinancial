@@ -41,9 +41,7 @@ function SidebarContent({ onNavigate }: { onNavigate?: () => void }) {
   return (
     <div className="flex h-full flex-col gap-1">
       <div className="mb-3 flex items-center gap-2 px-2 py-2">
-        <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-gradient-primary text-primary-foreground">
-          <Zap className="h-5 w-5" />
-        </div>
+        <img src="/logo.png" alt="Tephinancial Logo" className="h-10 w-10 rounded-xl shadow-sm object-contain" />
         <div className="flex flex-col leading-tight">
           <span className="text-base font-semibold">Tephinancial</span>
           <span className="text-[10px] uppercase tracking-wider text-muted-foreground">finanças automáticas</span>
@@ -91,9 +89,7 @@ function AppLayout() {
 
       <header className="sticky top-0 z-20 flex items-center justify-between border-b bg-background/80 px-4 py-3 backdrop-blur md:hidden">
         <Link to="/dashboard" className="flex items-center gap-2">
-          <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-gradient-primary text-primary-foreground">
-            <Zap className="h-4 w-4" />
-          </div>
+          <img src="/logo.png" alt="Tephinancial Logo" className="h-8 w-8 rounded-lg object-contain shadow-sm" />
           <span className="font-semibold">Tephinancial</span>
         </Link>
         <NotificationBell />

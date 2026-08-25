@@ -475,7 +475,10 @@ function Dashboard() {
 
         <Card className="p-4 md:p-5 shadow-soft flex flex-col justify-between">
           <div>
-            <p className="font-semibold text-sm md:text-base">Tephinancial</p>
+            <div className="flex items-center gap-2">
+              <img src="/logo.png" alt="Tephinancial" className="h-6 w-6 rounded object-contain shadow-sm" />
+              <p className="font-semibold text-sm md:text-base">Tephinancial</p>
+            </div>
             <p className="text-[10px] md:text-sm text-muted-foreground mt-1 leading-tight">Tire uma foto do comprovante — a IA cuida do resto.</p>
           </div>
           <Button asChild size="sm" className="w-full mt-4 md:mt-0 md:w-auto h-8 md:h-10 text-[11px] md:text-sm"><Link to="/capture"><Camera className="mr-1.5 h-3 w-3 md:h-4 md:w-4" /> Capturar</Link></Button>

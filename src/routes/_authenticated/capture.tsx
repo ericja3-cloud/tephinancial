@@ -287,8 +287,10 @@ const parseDateString = (d: string | null | undefined): string => {
   return (
     <div className="space-y-6">
       <header>
+      <div className="mb-8 flex items-center space-x-3 text-center w-full justify-center">
+        <img src="/logo.png" alt="Tephinancial Logo" className="h-8 w-auto rounded shadow-sm" />
         <h1 className="text-2xl font-bold tracking-tight md:text-3xl text-primary">Tephinancial</h1>
-        <p className="mt-1 text-sm text-muted-foreground">Tire uma foto do comprovante — a IA cuida do resto.</p>
+      </div>  <p className="mt-1 text-sm text-muted-foreground">Tire uma foto do comprovante — a IA cuida do resto.</p>
       </header>
 
       {stage === "idle" && (
