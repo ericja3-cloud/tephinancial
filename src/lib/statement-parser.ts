@@ -86,7 +86,12 @@ export async function parsePdfOrImage(file: File): Promise<TxForm[]> {
 
 /** Normaliza datas do formato DD/MM/YYYY ou YYYY-MM-DD para ISO YYYY-MM-DD */
 function normalizeDate(d: string): string {
-  // unchanged implementation
+  if (!d) return new Date().toISOString().slice(0, 10);
+  const br = d.match(/^(\d{2})[\/\-](\d{2})[\/\-](\d{4})$/);
+  if (br) return `${br[3]}-${br[2]}-${br[1]}`;
+  const parsed = new Date(d);
+  if (!isNaN(parsed.getTime())) return parsed.toISOString().slice(0, 10);
+  return new Date().toISOString().slice(0, 10);
 }
 
 /** Infer category from description using keyword map */
@@ -98,13 +103,6 @@ function inferCategory(text: string): string {
     }
   }
   return "Outros";
-}
-  if (!d) return new Date().toISOString().slice(0, 10);
-  const br = d.match(/^(\d{2})[\/\-](\d{2})[\/\-](\d{4})$/);
-  if (br) return `${br[3]}-${br[2]}-${br[1]}`;
-  const parsed = new Date(d);
-  if (!isNaN(parsed.getTime())) return parsed.toISOString().slice(0, 10);
-  return new Date().toISOString().slice(0, 10);
 }
 
 function parseDateString(d: string | null | undefined): string {
