@@ -4,8 +4,8 @@
 CREATE EXTENSION IF NOT EXISTS pg_net;
 CREATE EXTENSION IF NOT EXISTS pg_cron;
 
--- Remove o job antigo se existir
-SELECT cron.unschedule('whatsapp_reminders_job');
+-- Remove o job antigo se existir (desativado na primeira execução para não dar erro)
+-- SELECT cron.unschedule('whatsapp_reminders_job');
 
 -- Cria o job para rodar todos os dias as 08:00 (horário UTC, ajuste conforme necessário)
 SELECT cron.schedule(

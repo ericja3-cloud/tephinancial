@@ -1,37 +1,41 @@
-import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
-import { createClient } from "https://esm.sh/@supabase/supabase-js@2.45.1";
+import { createClient } from '@supabase/supabase-js';
 
-serve(async (req) => {
+const supabaseUrl = process.env.VITE_SUPABASE_URL;
+const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+const supabase = createClient(supabaseUrl, supabaseKey);
+
+async function testWhatsapp() {
+  console.log("Iniciando teste do WhatsApp...");
   try {
-    const supabaseUrl = Deno.env.get("SUPABASE_URL") ?? "";
-    const supabaseKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? "";
-    const supabase = createClient(supabaseUrl, supabaseKey);
-
-    // Get tomorrow's date in YYYY-MM-DD
     const tomorrow = new Date();
     tomorrow.setDate(tomorrow.getDate() + 1);
     const dateStr = tomorrow.toISOString().split("T")[0];
 
+    console.log("Buscando transações para:", dateStr);
+
     const { data: transactions, error: txError } = await supabase
       .from("transactions")
-      .select("id, amount, description, category, establishment, user_id")
+      .select("id, amount, description, category, establishment, user_id, date, status")
       .eq("type", "expense")
-      .eq("status", "pendente")
-      .eq("date", dateStr);
+      .order("created_at", { ascending: false })
+      .limit(3);
 
     if (txError) throw txError;
-
-    const sentMessages = [];
+    
+    console.log(`Encontradas ${transactions?.length || 0} contas pendentes para amanhã.`);
+    console.log("Transacoes recentes:", JSON.stringify(transactions, null, 2));
 
     for (const tx of transactions || []) {
-      const { data: profile } = await supabase
+      const { data: profileData } = await supabase
         .from("profiles")
         .select("phone_number, whatsapp_alerts, callmebot_apikey, full_name")
         .eq("id", tx.user_id)
         .single();
-      
-      // Check if user has alerts enabled and has credentials
+        
+      const profile = profileData;
+      console.log("Profile data:", profile);
       if (!profile?.whatsapp_alerts || !profile?.phone_number || !profile?.callmebot_apikey) {
+        console.log("Usuário não tem alertas ativados ou faltam credenciais.");
         continue;
       }
 
@@ -40,27 +44,21 @@ serve(async (req) => {
       
       const message = `Olá ${name}! 📅 Lembrete de vencimento amanhã:\n\n*${tx.description || tx.category}*\nValor: ${amountFormatted}\n\nAcesse o Tephinancial para marcar como pago.`;
       
-      // CallMeBot API
       const url = `https://api.callmebot.com/whatsapp.php?phone=${profile.phone_number}&text=${encodeURIComponent(message)}&apikey=${profile.callmebot_apikey}`;
+      console.log(`Enviando para ${profile.phone_number}...`);
       
       const response = await fetch(url);
       
       if (response.ok) {
-        sentMessages.push({ txId: tx.id, status: "sent" });
+        console.log("✅ Mensagem enviada com sucesso!");
       } else {
-        console.error(`Error sending to ${profile.phone_number}:`, await response.text());
-        sentMessages.push({ txId: tx.id, status: "error" });
+        console.error("❌ Erro ao enviar:", await response.text());
       }
     }
-
-    return new Response(JSON.stringify({ success: true, sent: sentMessages }), {
-      headers: { "Content-Type": "application/json" },
-    });
+    console.log("Teste finalizado.");
   } catch (error) {
-    console.error(error);
-    return new Response(JSON.stringify({ error: error.message }), {
-      headers: { "Content-Type": "application/json" },
-      status: 500,
-    });
+    console.error("Erro durante o teste:", error);
   }
-});
+}
+
+testWhatsapp();
