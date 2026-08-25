@@ -125,7 +125,7 @@ function Dashboard() {
     { name: "Despesas", valor: expenses }
   ];
 
-  const pending = filteredTxs.filter((t) => t.status === "pendente_revisao");
+  const pending = filteredTxs.filter((t) => t.status === "pendente_revisao" && t.source !== "manual");
   const recent = filteredTxs.slice(0, 8);
 
   // Metas (Budgeting)
