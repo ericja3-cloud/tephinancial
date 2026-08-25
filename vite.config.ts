@@ -12,13 +12,7 @@ export default defineConfig({
     nitro({
       externals: {
         inline: [
-          '@supabase/supabase-js',
-          '@supabase/auth-js',
-          '@supabase/postgrest-js',
-          '@supabase/storage-js',
-          '@supabase/realtime-js',
-          '@supabase/functions-js',
-          'tslib'
+          (id) => true
         ]
       }
     }),
