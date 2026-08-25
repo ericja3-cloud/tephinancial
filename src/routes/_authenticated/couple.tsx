@@ -385,7 +385,7 @@ function CoupleDashboard() {
   const monthKey = (d: string) => d.slice(0, 7);
   const thisMonth = `${currentMonth.getFullYear()}-${String(currentMonth.getMonth() + 1).padStart(2, "0")}`;
   
-  const monthTxs = txs.filter((t) => monthKey(t.date) === thisMonth);
+  const monthTxs = txs.filter((t) => monthKey(t.date) === thisMonth && (t.paid_by === "me" || t.paid_by === "spouse"));
 
   const mySplit = profile?.couple_split_ratio && typeof profile.couple_split_ratio === 'object' && 'me' in profile.couple_split_ratio 
     ? Number((profile.couple_split_ratio as any).me) : 50;

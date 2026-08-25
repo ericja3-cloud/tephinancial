@@ -98,7 +98,6 @@ function TransactionsPage() {
       const { data, error } = await supabase
         .from("transactions")
         .select("*")
-        .or("sharing_type.is.null,sharing_type.neq.shared,and(sharing_type.eq.shared,paid_by.eq.me)")
         .order("date", { ascending: false });
       if (error) throw error;
       return data as Tx[];

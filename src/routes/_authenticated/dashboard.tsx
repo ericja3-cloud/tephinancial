@@ -99,7 +99,7 @@ function Dashboard() {
   const monthKey = (d: string) => d.slice(0, 7);
   const thisMonth = `${currentMonth.getFullYear()}-${String(currentMonth.getMonth() + 1).padStart(2, "0")}`;
   
-  const nonSharedTxs = txs.filter((t) => t.sharing_type !== "shared");
+  const nonSharedTxs = txs;
   const filteredTxs = filter === "Tudo" ? nonSharedTxs : nonSharedTxs.filter((t) => t.classification === filter);
   
   const monthTxs = filteredTxs.filter((t) => monthKey(t.date) === thisMonth);

@@ -105,7 +105,7 @@ export function CalendarWidget({ mode = "personal" }: { mode?: "personal" | "cou
   
   const getDayInfo = (day: number) => {
     const dayStr = `${currentMonthStr}-${String(day).padStart(2, "0")}`;
-    const dayTxs = txs.filter(t => t.date === dayStr);
+    const dayTxs = txs.filter(t => t.date === dayStr && (mode !== "couple" || t.paid_by === "me" || t.paid_by === "spouse"));
     const dayReminders = reminders.filter(r => r.date === dayStr);
     
     const hasIncome = dayTxs.some(t => t.type === "income");
