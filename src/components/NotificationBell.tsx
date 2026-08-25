@@ -26,8 +26,13 @@ export function NotificationBell() {
     }
   }, []);
 
+  const { data: txs = [] } = useQuery({
+    queryKey: ["transactions"],
+    enabled: !!user,
+  });
+
   const { data: notifications = [] } = useQuery({
-    queryKey: ["notifications", user?.id],
+    queryKey: ["notifications", user?.id, txs],
     enabled: !!user,
     queryFn: async () => {
       const notifs: Notification[] = [];
