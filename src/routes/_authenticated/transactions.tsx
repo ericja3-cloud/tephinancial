@@ -1,7 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -16,7 +16,6 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Textarea } from "@/components/ui/textarea";
 import { brl } from "@/lib/format";
 import { CATEGORIES, CATEGORY_COLORS, SOURCE_LABEL, type Category } from "@/lib/categories";
-import { PREDEFINED_CARDS } from "@/lib/constants";
 import { Camera, Check, Mail, Paperclip, Pencil, Receipt, Trash2, Upload, Briefcase, Plus, ChevronLeft, ChevronRight, HeartHandshake } from "lucide-react";
 import { toast } from "sonner";
 import { useAuth } from "@/hooks/useAuth";
@@ -115,6 +114,26 @@ function TransactionsPage() {
       return Array.from(sources) as string[];
     },
   });
+
+  const { data: profile } = useQuery({
+    queryKey: ["profile", user?.id],
+    queryFn: async () => {
+      const { data } = await supabase.from("profiles").select("*").eq("id", user?.id).single();
+      return data;
+    },
+    enabled: !!user?.id
+  });
+
+  const userCards = useMemo(() => {
+    if (!profile?.cardholders) return ["Principal"];
+    const arr: string[] = [];
+    (profile.cardholders as any[]).forEach(card => {
+      card.holders?.forEach((h: string) => {
+        arr.push(`${card.cardName} - ${h}`);
+      });
+    });
+    return arr.length > 0 ? arr : ["Principal"];
+  }, [profile]);
 
   const saveTx = useMutation({
     mutationFn: async (t: Partial<Tx>) => {
@@ -514,7 +533,7 @@ function TransactionsPage() {
                   <div>
                     <Label>Conta / Cartão</Label>
                     <Select 
-                      value={PREDEFINED_CARDS.includes(editing.cardholder ?? "Principal") ? (editing.cardholder ?? "Principal") : "Outros"} 
+                      value={userCards.includes(editing.cardholder ?? "Principal") ? (editing.cardholder ?? "Principal") : "Outros"} 
                       onValueChange={(v) => {
                         if (v === "Outros") setEditing({ ...editing, cardholder: "" });
                         else setEditing({ ...editing, cardholder: v });
@@ -522,11 +541,11 @@ function TransactionsPage() {
                     >
                       <SelectTrigger><SelectValue /></SelectTrigger>
                       <SelectContent>
-                        {PREDEFINED_CARDS.map(c => <SelectItem key={c} value={c}>{c}</SelectItem>)}
+                        {userCards.map(c => <SelectItem key={c} value={c}>{c}</SelectItem>)}
                         <SelectItem value="Outros">➕ Outros...</SelectItem>
                       </SelectContent>
                     </Select>
-                    {!PREDEFINED_CARDS.includes(editing.cardholder ?? "Principal") && (
+                    {!userCards.includes(editing.cardholder ?? "Principal") && (
                       <Input 
                         className="mt-2" 
                         placeholder="Digite o nome do cartão/conta..." 

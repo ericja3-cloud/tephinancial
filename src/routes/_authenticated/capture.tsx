@@ -1,18 +1,18 @@
 import { createFileRoute, useRouter } from "@tanstack/react-router";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
-import { useCallback, useRef, useState } from "react";
+import { useCallback, useRef, useState, useMemo } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { extractReceipt, type ExtractResult } from "@/lib/receipts.functions";
 import { CATEGORIES, type Category } from "@/lib/categories";
-import { PREDEFINED_CARDS } from "@/lib/constants";
 import { sendWhatsAppNotification } from "@/lib/whatsapp.functions";
 import { Camera, Loader2, Sparkles, Upload, X, Trash2, Pencil } from "lucide-react";
 import { toast } from "sonner";
 import imageCompression from "browser-image-compression";
+import { useAuth } from "@/hooks/useAuth";
 
 export const Route = createFileRoute("/_authenticated/capture")({
   head: () => ({ meta: [{ title: "Capturar comprovante – Tephinancial" }] }),
@@ -45,11 +45,32 @@ type TxForm = {
 };
 
 function CapturePage() {
+  const { user } = useAuth();
   const router = useRouter();
   const { defaultShared } = Route.useSearch();
   const extract = useServerFn(extractReceipt);
   const [stage, setStage] = useState<Stage>("idle");
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
+
+  const { data: profile } = useQuery({
+    queryKey: ["profile", user?.id],
+    queryFn: async () => {
+      const { data } = await supabase.from("profiles").select("*").eq("id", user?.id).single();
+      return data;
+    },
+    enabled: !!user?.id
+  });
+
+  const userCards = useMemo(() => {
+    if (!profile?.cardholders) return ["Principal"];
+    const arr: string[] = [];
+    (profile.cardholders as any[]).forEach(card => {
+      card.holders?.forEach((h: string) => {
+        arr.push(`${card.cardName} - ${h}`);
+      });
+    });
+    return arr.length > 0 ? arr : ["Principal"];
+  }, [profile]);
   const [storagePath, setStoragePath] = useState<string | null>(null);
   const [source, setSource] = useState<"upload" | "camera">("upload");
   const [dragOver, setDragOver] = useState(false);
@@ -327,16 +348,16 @@ const parseDateString = (d: string | null | undefined): string => {
                       <label className="text-xs text-muted-foreground mb-1 block">Conta / Cartão</label>
                       <select 
                         className="w-full h-8 rounded-md border border-input bg-background px-2 py-1 text-xs"
-                        value={PREDEFINED_CARDS.includes(f.cardholder) ? f.cardholder : "Outros"}
+                        value={userCards.includes(f.cardholder) ? f.cardholder : "Outros"}
                         onChange={(e) => {
                           const val = e.target.value;
                           setForms(fs => fs.map(x => x.id === f.id ? { ...x, cardholder: val === "Outros" ? "" : val } : x));
                         }}
                       >
-                        {PREDEFINED_CARDS.map(c => <option key={c} value={c}>{c}</option>)}
+                        {userCards.map(c => <option key={c} value={c}>{c}</option>)}
                         <option value="Outros">➕ Outros...</option>
                       </select>
-                      {!PREDEFINED_CARDS.includes(f.cardholder) && (
+                      {!userCards.includes(f.cardholder) && (
                         <input 
                           type="text"
                           className="w-full h-8 rounded-md border border-input bg-background px-2 py-1 text-xs mt-1"
