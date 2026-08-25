@@ -516,28 +516,30 @@ function TransactionsPage() {
                   </div>
                 </div>
                 
-                <div className="grid gap-3 sm:grid-cols-2">
-                  <div>
-                    <Label>Propriedade do Gasto</Label>
-                    <Select value={editing.sharing_type || "private"} onValueChange={(v) => setEditing({ ...editing, sharing_type: v })}>
-                      <SelectTrigger><SelectValue /></SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="private">Particular (Apenas Meu)</SelectItem>
-                        <SelectItem value="shared">Conta da Casa (Compartilhado)</SelectItem>
-                      </SelectContent>
-                    </Select>
+                {editing.type !== "income" && (
+                  <div className="grid gap-3 sm:grid-cols-2">
+                    <div>
+                      <Label>Propriedade do Gasto</Label>
+                      <Select value={editing.sharing_type || "private"} onValueChange={(v) => setEditing({ ...editing, sharing_type: v })}>
+                        <SelectTrigger><SelectValue /></SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="private">Particular (Apenas Meu)</SelectItem>
+                          <SelectItem value="shared">Conta da Casa (Compartilhado)</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+                    <div>
+                      <Label>Quem pagou?</Label>
+                      <Select value={editing.paid_by || "me"} onValueChange={(v) => setEditing({ ...editing, paid_by: v })}>
+                        <SelectTrigger><SelectValue /></SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="me">Eu paguei</SelectItem>
+                          <SelectItem value="spouse">Parceiro pagou</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
                   </div>
-                  <div>
-                    <Label>Quem pagou?</Label>
-                    <Select value={editing.paid_by || "me"} onValueChange={(v) => setEditing({ ...editing, paid_by: v })}>
-                      <SelectTrigger><SelectValue /></SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="me">Eu paguei</SelectItem>
-                        <SelectItem value="spouse">Parceiro pagou</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
-                </div>
+                )}
                 
                 {editing.payment_method === "Cartão de Crédito" && (
                   <div className="grid gap-3 sm:grid-cols-2 p-3 bg-muted rounded-lg">
@@ -552,16 +554,18 @@ function TransactionsPage() {
                   </div>
                 )}
                 
-                <div className="flex items-center space-x-4 mt-1">
-                  <div className="flex items-center space-x-2">
-                    <Checkbox id="fixed" checked={!!editing.is_fixed} onCheckedChange={(checked) => setEditing({ ...editing, is_fixed: checked === true })} />
-                    <Label htmlFor="fixed">Despesa Fixa</Label>
+                {editing.type !== "income" && (
+                  <div className="flex items-center space-x-4 mt-1">
+                    <div className="flex items-center space-x-2">
+                      <Checkbox id="fixed" checked={!!editing.is_fixed} onCheckedChange={(checked) => setEditing({ ...editing, is_fixed: checked === true })} />
+                      <Label htmlFor="fixed">Despesa Fixa</Label>
+                    </div>
+                    <div className="flex items-center space-x-2">
+                      <Checkbox id="recurring" checked={!!editing.is_recurring} onCheckedChange={(checked) => setEditing({ ...editing, is_recurring: checked === true })} />
+                      <Label htmlFor="recurring">Despesa Recorrente</Label>
+                    </div>
                   </div>
-                  <div className="flex items-center space-x-2">
-                    <Checkbox id="recurring" checked={!!editing.is_recurring} onCheckedChange={(checked) => setEditing({ ...editing, is_recurring: checked === true })} />
-                    <Label htmlFor="recurring">Despesa Recorrente</Label>
-                  </div>
-                </div>
+                )}
 
                 <div>
                   <Label>Anotações <span className="text-muted-foreground font-normal">(Opcional)</span></Label>
