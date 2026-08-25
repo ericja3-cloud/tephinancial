@@ -54,8 +54,8 @@ export async function parseCsv(file: File): Promise<TxForm[]> {
  * Parse PDF or image using the existing AI extractor.
  * Returns the same TxForm[] shape as capture page.
  */
-export async function parsePdfOrImage(file: File): Promise<TxForm[]> {
-  const result = await extractReceipt({ data: { file } });
+export async function parsePdfOrImage(path: string, extract: any): Promise<TxForm[]> {
+  const result = await extract({ data: { path } });
   const txs = (result as any).transacoes || [];
   const parsed: TxForm[] = txs.map((t: any) => {
     const cat = t.categoria_sugerida || inferCategory(t.descricao_servico || t.estabelecimento || "");
@@ -95,7 +95,7 @@ function normalizeDate(d: string): string {
 }
 
 /** Infer category from description using keyword map */
-function inferCategory(text: string): string {
+export function inferCategory(text: string): string {
   const lower = text.toLowerCase();
   for (const [cat, keywords] of Object.entries(categoryMap)) {
     for (const kw of keywords as string[]) {
@@ -105,6 +105,6 @@ function inferCategory(text: string): string {
   return "Outros";
 }
 
-function parseDateString(d: string | null | undefined): string {
+export function parseDateString(d: string | null | undefined): string {
   return normalizeDate(d ?? "");
 }

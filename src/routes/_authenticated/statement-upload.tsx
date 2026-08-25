@@ -6,7 +6,9 @@ import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Zap } from "lucide-react";
-import { parseCsv, parsePdfOrImage, TxForm } from "@/lib/statement-parser";
+import { parseCsv, TxForm, inferCategory, parseDateString } from "@/lib/statement-parser";
+import { useServerFn } from "@tanstack/react-start";
+import { extractReceipt } from "@/lib/receipts.functions";
 
 export const Route = createFileRoute("/_authenticated/statement-upload")({
   component: StatementUploadPage,
@@ -15,6 +17,7 @@ export const Route = createFileRoute("/_authenticated/statement-upload")({
 function StatementUploadPage() {
   const router = useRouter();
   const qc = useQueryClient();
+  const extract = useServerFn(extractReceipt);
   const [file, setFile] = useState<File | null>(null);
   const [preview, setPreview] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
@@ -76,7 +79,39 @@ function StatementUploadPage() {
       if (file.type === "text/csv" || file.name.endsWith(".csv")) {
         txs = await parseCsv(file);
       } else {
-        txs = await parsePdfOrImage(file);
+        const { data: userData } = await supabase.auth.getUser();
+        const uid = userData.user?.id;
+        if (!uid) throw new Error("Não autenticado");
+        const ext = file.name.split(".").pop() || (file.type.split("/")[1] ?? "jpg");
+        const path = `${uid}/${crypto.randomUUID()}.${ext}`;
+        const up = await supabase.storage.from("receipts").upload(path, file, { contentType: file.type });
+        if (up.error) throw up.error;
+        const result = await extract({ data: { path } });
+        const extractedTxs = (result as any).transacoes || [];
+        txs = extractedTxs.map((t: any) => {
+          const cat = t.categoria_sugerida || inferCategory(t.descricao_servico || t.estabelecimento || "");
+          const isPJ = t.tipo_documento === "faturamento_pj";
+          const date = parseDateString(t.data);
+          return {
+            id: crypto.randomUUID(),
+            doc_type: t.tipo_documento || "despesa",
+            type: isPJ ? "income" : "expense",
+            payment_method: "Cartão de Crédito",
+            target_source: isPJ ? t.estabelecimento ?? "" : "",
+            description: t.descricao_servico ?? "",
+            establishment: t.estabelecimento ?? "",
+            amount: t.valor != null ? String(t.valor) : "0",
+            date,
+            category: cat as any,
+            classification: t.classificacao === "PJ" ? "PJ" : "PF",
+            cardholder: t.portador || "Principal",
+            confidence: t.confiança ?? null,
+            sharing_type: "private",
+            installments_current: null,
+            installments_total: null,
+            status: "pendente_revisao",
+          } as TxForm;
+        });
       }
       if (txs.length === 0) throw new Error("Nenhuma transação encontrada no extrato.");
       uploadMutation.mutate(txs);

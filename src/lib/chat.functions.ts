@@ -40,8 +40,8 @@ ${data.context}
       });
 
       return { text: response.text };
-    } catch (error) {
+    } catch (error: any) {
       console.error("askPocketManager error:", error);
-      throw error;
+      throw new Error(error.message || "Erro desconhecido no Gerente de Bolso");
     }
   });

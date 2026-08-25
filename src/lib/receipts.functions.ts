@@ -72,7 +72,7 @@ export async function extractTransactionsFromBlob(file: Blob): Promise<ExtractRe
             { type: "text", text: prompt },
             mime.startsWith("image/")
               ? { type: "image", image: dataUrl }
-              : { type: "file", data: dataUrl, mediaType: mime },
+              : { type: "file", data: dataUrl, mimeType: mime },
           ],
         },
       ],
@@ -91,16 +91,26 @@ export async function extractTransactionsFromBlob(file: Blob): Promise<ExtractRe
 
 export const extractReceipt = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .inputValidator((data: { path: string }) => data)
+  .validator(z.object({ path: z.string() }))
   .handler(async ({ data, context }): Promise<ExtractResult> => {
-    // If we have a real Gemini API key, use it. Otherwise, mock it.
-    const key = process.env.GEMINI_API_KEY || process.env.LOVABLE_API_KEY;
-    
-    // Download the receipt using the user's authenticated client (RLS-scoped).
-    const { data: file, error } = await context.supabase.storage
-      .from("receipts")
-      .download(data.path);
-    if (error || !file) throw new Error("Não foi possível ler o comprovante.");
+    try {
+      const key = process.env.GEMINI_API_KEY || process.env.LOVABLE_API_KEY;
+      
+      const { data: file, error } = await context.supabase.storage
+        .from("receipts")
+        .download(data.path);
+      
+      if (error) {
+        throw new Error("Erro no Supabase: " + error.message);
+      }
+      if (!file) {
+        throw new Error("Comprovante não encontrado no banco.");
+      }
 
-    return await extractTransactionsFromBlob(file);
+      const result = await extractTransactionsFromBlob(file);
+      // Ensure plain object
+      return JSON.parse(JSON.stringify(result));
+    } catch (e: any) {
+      throw new Error(e.message || "Erro desconhecido ao ler o comprovante");
+    }
   });
