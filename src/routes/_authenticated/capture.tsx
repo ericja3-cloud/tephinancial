@@ -38,6 +38,9 @@ type TxForm = {
   cardholder: string;
   confidence: string | null;
   sharing_type: string;
+  installments_current: number | null;
+  installments_total: number | null;
+  status: "pago" | "pendente_revisao";
 };
 
 function CapturePage() {
@@ -125,6 +128,9 @@ const parseDateString = (d: string | null | undefined): string => {
           cardholder: t.portador || "Principal",
           confidence: t.confiança ?? "Baixa",
           sharing_type: defaultShared ? "shared" : (t.propriedade === "casa" ? "shared" : "private"),
+          installments_current: null,
+          installments_total: null,
+          status: "pendente_revisao",
         };
       });
 
@@ -142,9 +148,10 @@ const parseDateString = (d: string | null | undefined): string => {
       const uid = userData.user?.id;
       if (!uid) throw new Error("Não autenticado");
       
-      const inserts = forms.map(f => {
+      const allInserts: any[] = [];
+      forms.forEach(f => {
         const amount = parseFloat(f.amount);
-        return {
+        const insert = {
           user_id: uid,
           type: f.type,
           payment_method: f.payment_method,
@@ -158,15 +165,34 @@ const parseDateString = (d: string | null | undefined): string => {
           category: f.category,
           date: f.date,
           source,
-          status: "pendente_revisao",
+          status: f.status,
           ai_confidence: f.confidence,
           receipt_url: storagePath,
           sharing_type: f.sharing_type,
-          paid_by: f.sharing_type === "shared" ? "me" : null,
+          paid_by: f.sharing_type === "shared" ? (f.status === "pago" ? "me" : null) : null,
         };
+
+        if (f.installments_total && f.installments_total > 1) {
+          const valPerInstallment = insert.amount / f.installments_total;
+          for (let i = 0; i < f.installments_total; i++) {
+            const date = new Date(insert.date);
+            date.setMonth(date.getMonth() + i);
+            allInserts.push({
+              ...insert,
+              amount: valPerInstallment,
+              date: date.toISOString().split("T")[0],
+              installments_current: i + 1,
+              installments_total: f.installments_total,
+              status: i === 0 ? f.status : "pendente_revisao",
+              paid_by: i === 0 ? insert.paid_by : null,
+            });
+          }
+        } else {
+          allInserts.push(insert);
+        }
       });
 
-      const { error } = await supabase.from("transactions").insert(inserts);
+      const { error } = await supabase.from("transactions").insert(allInserts);
       if (error) throw error;
 
       // Send WhatsApp notification if configured
@@ -278,20 +304,56 @@ const parseDateString = (d: string | null | undefined): string => {
             
             <div className="flex flex-col gap-3">
               {forms.map((f, i) => (
-                <div key={f.id} className="flex items-center justify-between rounded-lg border bg-card p-3 shadow-sm">
-                  <div className="min-w-0 flex-1">
-                    <div className="flex items-center gap-2">
-                      <p className="truncate font-medium">{f.establishment || "Despesa"}</p>
-                      <Badge variant="outline" className="text-[10px]">{f.cardholder}</Badge>
-                      <Badge variant="secondary" className="text-[10px]">{f.classification}</Badge>
+                <div key={f.id} className="flex flex-col gap-3 rounded-lg border bg-card p-4 shadow-sm">
+                  <div className="flex items-start justify-between">
+                    <div className="min-w-0 flex-1">
+                      <div className="flex items-center gap-2">
+                        <p className="truncate font-medium">{f.establishment || "Despesa"}</p>
+                        <Badge variant="outline" className="text-[10px]">{f.cardholder}</Badge>
+                        <Badge variant="secondary" className="text-[10px]">{f.classification}</Badge>
+                      </div>
+                      <p className="text-sm text-muted-foreground">{new Date(f.date).toLocaleDateString("pt-BR")} · {f.category}</p>
                     </div>
-                    <p className="text-sm text-muted-foreground">{new Date(f.date).toLocaleDateString("pt-BR")} · {f.category}</p>
+                    <div className="flex items-center gap-4">
+                      <span className="font-semibold">R$ {f.amount}</span>
+                      <Button variant="ghost" size="icon" className="text-destructive" onClick={() => setForms(fs => fs.filter(x => x.id !== f.id))}>
+                        <Trash2 className="h-4 w-4" />
+                      </Button>
+                    </div>
                   </div>
-                  <div className="flex items-center gap-4">
-                    <span className="font-semibold">R$ {f.amount}</span>
-                    <Button variant="ghost" size="icon" className="text-destructive" onClick={() => setForms(fs => fs.filter(x => x.id !== f.id))}>
-                      <Trash2 className="h-4 w-4" />
-                    </Button>
+                  
+                  <div className="grid grid-cols-2 gap-3 sm:grid-cols-4 mt-2 pt-3 border-t">
+                    <div>
+                      <label className="text-xs text-muted-foreground mb-1 block">Status</label>
+                      <select 
+                        className="w-full h-8 rounded-md border border-input bg-background px-2 py-1 text-xs"
+                        value={f.status}
+                        onChange={(e) => setForms(fs => fs.map(x => x.id === f.id ? { ...x, status: e.target.value as "pago" | "pendente_revisao" } : x))}
+                      >
+                        <option value="pago">Já Pago</option>
+                        <option value="pendente_revisao">A Pagar</option>
+                      </select>
+                    </div>
+                    <div>
+                      <label className="text-xs text-muted-foreground mb-1 block">Parcela atual</label>
+                      <input 
+                        type="number" 
+                        placeholder="Ex: 1" 
+                        className="w-full h-8 rounded-md border border-input bg-background px-2 py-1 text-xs"
+                        value={f.installments_current || ""}
+                        onChange={(e) => setForms(fs => fs.map(x => x.id === f.id ? { ...x, installments_current: parseInt(e.target.value) || null } : x))}
+                      />
+                    </div>
+                    <div>
+                      <label className="text-xs text-muted-foreground mb-1 block">Total parcelas</label>
+                      <input 
+                        type="number" 
+                        placeholder="Ex: 12" 
+                        className="w-full h-8 rounded-md border border-input bg-background px-2 py-1 text-xs"
+                        value={f.installments_total || ""}
+                        onChange={(e) => setForms(fs => fs.map(x => x.id === f.id ? { ...x, installments_total: parseInt(e.target.value) || null } : x))}
+                      />
+                    </div>
                   </div>
                 </div>
               ))}
