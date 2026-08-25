@@ -1,0 +1,7 @@
+{
+  "functions": {
+    "**/*.func": {
+      "includeFiles": "node_modules/tslib/**"
+    }
+  }
+}
