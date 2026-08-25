@@ -4,6 +4,7 @@ import tsconfigPaths from "vite-tsconfig-paths";
 import tailwindcss from "@tailwindcss/vite";
 import { tanstackStart } from "@tanstack/react-start/plugin/vite";
 import { nitro } from "nitro/vite";
+import path from "path";
 
 export default defineConfig({
   plugins: [
@@ -33,7 +34,8 @@ export default defineConfig({
   },
   resolve: {
     alias: {
-      'tslib': 'tslib/tslib.es6.js',
+      '@': path.resolve(__dirname, './src'),
+      'tslib': path.resolve(__dirname, './src/lib/tslib-mock.js'),
     }
   }
 });
