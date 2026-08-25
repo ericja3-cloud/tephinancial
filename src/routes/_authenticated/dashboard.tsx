@@ -241,8 +241,8 @@ function Dashboard() {
             <Tabs value={filter} onValueChange={(v) => setFilter(v as any)} className="w-full md:w-auto">
               <TabsList className="grid w-full grid-cols-3">
                 <TabsTrigger value="Tudo">Tudo</TabsTrigger>
-                <TabsTrigger value="PF">Pessoal (PF)</TabsTrigger>
-                <TabsTrigger value="PJ">Pro (PJ)</TabsTrigger>
+                <TabsTrigger value="PF">PF</TabsTrigger>
+                <TabsTrigger value="PJ">PJ</TabsTrigger>
               </TabsList>
             </Tabs>
           </div>
