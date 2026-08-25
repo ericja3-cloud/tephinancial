@@ -1,0 +1,15 @@
+export const PREDEFINED_CARDS = [
+  "💰 Principal",
+  "🟣 Nubank",
+  "🟠 Itaú",
+  "⬛ Itaú Personnalité",
+  "🌎 Revolut",
+  "🟡 XP",
+  "🔵 C6 Bank",
+  "🏦 Inter",
+  "🔴 Santander",
+  "💎 Bradesco",
+  "💛 Banco do Brasil",
+  "🟢 Wise",
+  "🟦 Nomad",
+];

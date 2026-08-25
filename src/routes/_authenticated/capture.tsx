@@ -8,6 +8,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { extractReceipt, type ExtractResult } from "@/lib/receipts.functions";
 import { CATEGORIES, type Category } from "@/lib/categories";
+import { PREDEFINED_CARDS } from "@/lib/constants";
 import { sendWhatsAppNotification } from "@/lib/whatsapp.functions";
 import { Camera, Loader2, Sparkles, Upload, X, Trash2, Pencil } from "lucide-react";
 import { toast } from "sonner";
@@ -309,7 +310,6 @@ const parseDateString = (d: string | null | undefined): string => {
                     <div className="min-w-0 flex-1">
                       <div className="flex items-center gap-2">
                         <p className="truncate font-medium">{f.establishment || "Despesa"}</p>
-                        <Badge variant="outline" className="text-[10px]">{f.cardholder}</Badge>
                         <Badge variant="secondary" className="text-[10px]">{f.classification}</Badge>
                       </div>
                       <p className="text-sm text-muted-foreground">{new Date(f.date).toLocaleDateString("pt-BR")} · {f.category}</p>
@@ -323,6 +323,29 @@ const parseDateString = (d: string | null | undefined): string => {
                   </div>
                   
                   <div className="grid grid-cols-2 gap-3 sm:grid-cols-4 mt-2 pt-3 border-t">
+                    <div>
+                      <label className="text-xs text-muted-foreground mb-1 block">Conta / Cartão</label>
+                      <select 
+                        className="w-full h-8 rounded-md border border-input bg-background px-2 py-1 text-xs"
+                        value={PREDEFINED_CARDS.includes(f.cardholder) ? f.cardholder : "Outros"}
+                        onChange={(e) => {
+                          const val = e.target.value;
+                          setForms(fs => fs.map(x => x.id === f.id ? { ...x, cardholder: val === "Outros" ? "" : val } : x));
+                        }}
+                      >
+                        {PREDEFINED_CARDS.map(c => <option key={c} value={c}>{c}</option>)}
+                        <option value="Outros">➕ Outros...</option>
+                      </select>
+                      {!PREDEFINED_CARDS.includes(f.cardholder) && (
+                        <input 
+                          type="text"
+                          className="w-full h-8 rounded-md border border-input bg-background px-2 py-1 text-xs mt-1"
+                          placeholder="Nome..."
+                          value={f.cardholder}
+                          onChange={(e) => setForms(fs => fs.map(x => x.id === f.id ? { ...x, cardholder: e.target.value } : x))}
+                        />
+                      )}
+                    </div>
                     <div>
                       <label className="text-xs text-muted-foreground mb-1 block">Status</label>
                       <select 

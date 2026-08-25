@@ -16,6 +16,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Textarea } from "@/components/ui/textarea";
 import { brl } from "@/lib/format";
 import { CATEGORIES, CATEGORY_COLORS, SOURCE_LABEL, type Category } from "@/lib/categories";
+import { PREDEFINED_CARDS } from "@/lib/constants";
 import { Camera, Check, Mail, Paperclip, Pencil, Receipt, Trash2, Upload, Briefcase, Plus, ChevronLeft, ChevronRight, HeartHandshake } from "lucide-react";
 import { toast } from "sonner";
 import { useAuth } from "@/hooks/useAuth";
@@ -512,7 +513,27 @@ function TransactionsPage() {
                   </div>
                   <div>
                     <Label>Conta / Cartão</Label>
-                    <Input value={editing.cardholder ?? "Principal"} onChange={(e) => setEditing({ ...editing, cardholder: e.target.value })} />
+                    <Select 
+                      value={PREDEFINED_CARDS.includes(editing.cardholder ?? "Principal") ? (editing.cardholder ?? "Principal") : "Outros"} 
+                      onValueChange={(v) => {
+                        if (v === "Outros") setEditing({ ...editing, cardholder: "" });
+                        else setEditing({ ...editing, cardholder: v });
+                      }}
+                    >
+                      <SelectTrigger><SelectValue /></SelectTrigger>
+                      <SelectContent>
+                        {PREDEFINED_CARDS.map(c => <SelectItem key={c} value={c}>{c}</SelectItem>)}
+                        <SelectItem value="Outros">➕ Outros...</SelectItem>
+                      </SelectContent>
+                    </Select>
+                    {!PREDEFINED_CARDS.includes(editing.cardholder ?? "Principal") && (
+                      <Input 
+                        className="mt-2" 
+                        placeholder="Digite o nome do cartão/conta..." 
+                        value={editing.cardholder ?? ""} 
+                        onChange={(e) => setEditing({ ...editing, cardholder: e.target.value })} 
+                      />
+                    )}
                   </div>
                 </div>
                 
