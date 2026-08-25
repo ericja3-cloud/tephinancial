@@ -1,1 +1,0 @@
-function e(t,[r,n]){return Math.min(n,Math.max(r,t))}const a=t=>{const r=typeof t=="string"?parseFloat(t):t??0;return new Intl.NumberFormat("pt-BR",{style:"currency",currency:"BRL",minimumFractionDigits:2}).format(Number.isFinite(r)?r:0)};export{a as b,e as c};
