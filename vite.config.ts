@@ -18,5 +18,10 @@ export default defineConfig({
   },
   ssr: {
     noExternal: ['@supabase/supabase-js', '@supabase/auth-js', 'tslib'],
+  },
+  resolve: {
+    alias: {
+      'tslib': 'tslib/tslib.es6.js',
+    }
   }
 });
