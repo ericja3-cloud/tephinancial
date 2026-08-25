@@ -1,0 +1,14 @@
+{
+  "Alimentação": ["ifood", "rappi", "mercado", "padaria", "supermercado", "açougue", "restaurante", "lanchonete", "mc donalds", "burger king", "pizzaria", "carrefour", "pão de açúcar", "extra", "assai", "atacadao", "big"],
+  "Transporte": ["uber", "99", "posto", "gasolina", "combustivel", "ipiranga", "shell", "petrobras", "estacionamento", "pedagio", "sem parar", "veloe", "conectcar", "passagem", "onibus", "metro", "cptm"],
+  "Lazer": ["cinema", "teatro", "show", "ingresso", "netflix", "spotify", "prime video", "disney", "hbo", "viagem", "hotel", "pousada", "airbnb", "bar", "balada", "pub"],
+  "Saúde": ["farmacia", "drogaria", "drogasil", "raia", "pacheco", "sao paulo", "hospital", "clinica", "medico", "dentista", "unimed", "amil", "sulamerica", "bradesco saude"],
+  "Moradia": ["aluguel", "condominio", "energia", "luz", "enel", "cpfl", "light", "agua", "sabesp", "cedae", "gas", "comgas", "iptu", "internet", "claro", "vivo", "tim", "oi"],
+  "Educação": ["escola", "faculdade", "universidade", "curso", "livro", "papelaria", "estacio", "anhanguera", "mackenzie", "puc", "udemy", "alura"],
+  "Compras": ["shopee", "mercado livre", "amazon", "magalu", "magazine luiza", "americanas", "submarino", "kabum", "renner", "riachuelo", "cea", "zara", "roupa", "calcado"],
+  "Cuidados Pessoais": ["salao", "cabeleireiro", "barbearia", "estetica", "manicure", "perfume", "cosmetico", "boticario", "natura", "avon"],
+  "Pets": ["petz", "cobasi", "petshop", "veterinario", "racao", "banho e tosa"],
+  "Contas Fixas": ["seguro", "porto seguro", "tokio marine", "mapfre", "emprestimo", "financiamento", "consorcio", "mensalidade"],
+  "Impostos/Taxas": ["iof", "juros", "multa", "tarifa", "anuidade", "ipva", "licenciamento", "darf", "das", "irpf"],
+  "Serviços": ["limpeza", "faxina", "diarista", "pedreiro", "eletricista", "encanador", "chaveiro", "mecanico", "oficina"]
+}
