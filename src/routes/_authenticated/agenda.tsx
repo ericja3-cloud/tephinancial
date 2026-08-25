@@ -6,7 +6,11 @@ import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Calendar, CheckCircle2, AlertCircle, FileText, ChevronLeft, ChevronRight, Check, CreditCard, Sparkles } from "lucide-react";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Checkbox } from "@/components/ui/checkbox";
+import { Calendar, CheckCircle2, AlertCircle, FileText, ChevronLeft, ChevronRight, Check, CreditCard, Sparkles, Plus } from "lucide-react";
 import { toast } from "sonner";
 import { brl } from "@/lib/format";
 import { CATEGORIES, CATEGORY_COLORS, type Category } from "@/lib/categories";
@@ -50,6 +54,14 @@ function AgendaPage() {
   const [viewMode, setViewMode] = useState<"calendar" | "list">("calendar");
   const [selectedDayTxs, setSelectedDayTxs] = useState<{ day: number; txs: any[] } | null>(null);
 
+  // States for adding a new bill
+  const [showAddForm, setShowAddForm] = useState(false);
+  const [newBillDesc, setNewBillDesc] = useState("");
+  const [newBillAmount, setNewBillAmount] = useState("");
+  const [newBillCat, setNewBillCat] = useState("Moradia");
+  const [newBillClass, setNewBillClass] = useState<"PF" | "PJ">("PF");
+  const [newBillFixed, setNewBillFixed] = useState(true);
+
   // Fetch user profile (to get cards with due/closing days)
   const { data: profile } = useQuery({
     queryKey: ["profile", user?.id],
@@ -89,6 +101,43 @@ function AgendaPage() {
     },
     onError: (err) => {
       toast.error(`Erro ao atualizar: ${err.message}`);
+    }
+  });
+
+  // Add bill mutation
+  const addBillMutation = useMutation({
+    mutationFn: async () => {
+      if (!newBillDesc.trim() || !newBillAmount.trim()) {
+        throw new Error("Preencha descrição e valor.");
+      }
+      const dayStr = `${thisMonthStr}-${String(selectedDayTxs?.day).padStart(2, "0")}`;
+      const amount = parseFloat(newBillAmount.replace(",", "."));
+      
+      const { error } = await supabase.from("transactions").insert({
+        user_id: user!.id,
+        type: "expense",
+        amount: isNaN(amount) ? 0 : amount,
+        description: newBillDesc,
+        establishment: newBillDesc,
+        category: newBillCat,
+        date: dayStr,
+        status: "pendente_revisao",
+        source: "manual",
+        classification: newBillClass,
+        is_fixed: newBillFixed,
+      });
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["transactions"] });
+      toast.success("Conta cadastrada com sucesso! 📅");
+      setNewBillDesc("");
+      setNewBillAmount("");
+      setShowAddForm(false);
+      setSelectedDayTxs(null);
+    },
+    onError: (err: any) => {
+      toast.error(`Erro ao salvar conta: ${err.message}`);
     }
   });
 
@@ -267,6 +316,11 @@ function AgendaPage() {
       .sort((a, b) => a.date.localeCompare(b.date));
   }, [filteredTxs]);
 
+  const handleOpenDayModal = (day: number) => {
+    setSelectedDayTxs({ day, txs: getDayEvents(day) });
+    setShowAddForm(false);
+  };
+
   return (
     <div className="space-y-6">
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
@@ -383,10 +437,10 @@ function AgendaPage() {
               return (
                 <div 
                   key={`day-${day}`} 
-                  onClick={() => dayEvents.length > 0 && setSelectedDayTxs({ day, txs: dayEvents })}
+                  onClick={() => handleOpenDayModal(day)}
                   className={`h-20 p-2 rounded-lg border flex flex-col justify-between transition-all select-none cursor-pointer ${
                     isToday ? "border-primary bg-primary/5 ring-1 ring-primary/20" : "border-border hover:bg-muted/30"
-                  } ${dayEvents.length > 0 ? "hover:border-foreground/45" : "cursor-default opacity-85"}`}
+                  } hover:border-foreground/45`}
                 >
                   <span className={`text-xs font-bold leading-none ${isToday ? 'text-primary' : ''}`}>{day}</span>
                   
@@ -492,62 +546,156 @@ function AgendaPage() {
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm p-4">
           <Card className="w-full max-w-lg p-6 shadow-xl animate-in zoom-in-95 duration-105">
             <div className="flex items-center justify-between border-b pb-3 mb-4">
-              <h3 className="font-bold text-lg">Eventos do Dia {selectedDayTxs.day} de {monthNames[currentMonth.getMonth()]}</h3>
+              <div>
+                <h3 className="font-bold text-lg">Contas do Dia {selectedDayTxs.day}</h3>
+                <p className="text-xs text-muted-foreground">Referente a {monthNames[currentMonth.getMonth()]} de {currentMonth.getFullYear()}</p>
+              </div>
               <Button variant="ghost" size="sm" className="h-8 w-8 p-0" onClick={() => setSelectedDayTxs(null)}>✕</Button>
             </div>
             
-            <div className="space-y-4.5 max-h-96 overflow-y-auto pr-1">
-              {selectedDayTxs.txs.map((b) => (
-                <div key={b.id} className="flex items-center justify-between gap-3 border-b pb-3.5 last:border-0 last:pb-0">
-                  <div className="min-w-0 flex-1">
-                    <p className="font-semibold text-sm truncate">{b.description || b.establishment}</p>
-                    <div className="flex flex-wrap items-center gap-2 mt-1">
-                      {b.isCardReminder ? (
-                        <Badge variant="outline" className="border-rose-500/35 bg-rose-50/50 text-rose-700 text-[10px]">Lembrete de Cartão</Badge>
-                      ) : (
-                        <>
-                          {b.classification === "PF" && <Badge variant="outline" className="border-blue-500/30 bg-blue-500/10 text-blue-600 px-1.5 py-0 text-[10px]">PF</Badge>}
-                          {b.classification === "PJ" && <Badge variant="outline" className="border-purple-500/30 bg-purple-500/10 text-purple-600 px-1.5 py-0 text-[10px]">PJ</Badge>}
-                          <span className="text-xs text-muted-foreground">{b.category}</span>
-                        </>
+            <div className="space-y-4.5 max-h-64 overflow-y-auto pr-1">
+              {selectedDayTxs.txs.length === 0 ? (
+                <p className="text-sm text-muted-foreground text-center py-4">Nenhuma conta ou lembrete para este dia.</p>
+              ) : (
+                selectedDayTxs.txs.map((b) => (
+                  <div key={b.id} className="flex items-center justify-between gap-3 border-b pb-3.5 last:border-0 last:pb-0">
+                    <div className="min-w-0 flex-1">
+                      <p className="font-semibold text-sm truncate">{b.description || b.establishment}</p>
+                      <div className="flex flex-wrap items-center gap-2 mt-1">
+                        {b.isCardReminder ? (
+                          <Badge variant="outline" className="border-rose-500/35 bg-rose-50/50 text-rose-700 text-[10px]">Lembrete de Cartão</Badge>
+                        ) : (
+                          <>
+                            {b.classification === "PF" && <Badge variant="outline" className="border-blue-500/30 bg-blue-500/10 text-blue-600 px-1.5 py-0 text-[10px]">PF</Badge>}
+                            {b.classification === "PJ" && <Badge variant="outline" className="border-purple-500/30 bg-purple-500/10 text-purple-600 px-1.5 py-0 text-[10px]">PJ</Badge>}
+                            <span className="text-xs text-muted-foreground">{b.category}</span>
+                          </>
+                        )}
+                      </div>
+                    </div>
+
+                    <div className="flex items-center gap-3 shrink-0">
+                      {!b.isCardReminder && (
+                        <div className="flex flex-col items-end gap-1.5">
+                          <span className="font-semibold text-sm">{brl(b.amount)}</span>
+                          <div className="flex items-center gap-1 bg-muted p-0.5 rounded-md">
+                            <button
+                              className={`px-2 py-1 text-[10px] font-bold rounded-sm transition-all ${
+                                b.status === "confirmado"
+                                  ? "bg-success text-success-foreground shadow-sm"
+                                  : "text-muted-foreground hover:text-foreground"
+                              }`}
+                              onClick={() => updateStatusMutation.mutate({ id: b.id, status: "confirmado" })}
+                            >
+                              Já Paguei
+                            </button>
+                            <button
+                              className={`px-2 py-1 text-[10px] font-bold rounded-sm transition-all ${
+                                b.status === "pendente_revisao"
+                                  ? "bg-warning text-warning-foreground shadow-sm"
+                                  : "text-muted-foreground hover:text-foreground"
+                              }`}
+                              onClick={() => updateStatusMutation.mutate({ id: b.id, status: "pendente_revisao" })}
+                            >
+                              Vou Pagar
+                            </button>
+                          </div>
+                        </div>
+                      )}
+                      {b.isCardReminder && (
+                        <span className="text-xs text-muted-foreground italic">Lembrete Automático</span>
                       )}
                     </div>
                   </div>
+                ))
+              )}
+            </div>
 
-                  <div className="flex items-center gap-3 shrink-0">
-                    {!b.isCardReminder && (
-                      <div className="flex flex-col items-end gap-1.5">
-                        <span className="font-semibold text-sm">{brl(b.amount)}</span>
-                        <div className="flex items-center gap-1 bg-muted p-0.5 rounded-md">
-                          <button
-                            className={`px-2 py-1 text-[10px] font-bold rounded-sm transition-all ${
-                              b.status === "confirmado"
-                                ? "bg-success text-success-foreground shadow-sm"
-                                : "text-muted-foreground hover:text-foreground"
-                            }`}
-                            onClick={() => updateStatusMutation.mutate({ id: b.id, status: "confirmado" })}
-                          >
-                            Já Paguei
-                          </button>
-                          <button
-                            className={`px-2 py-1 text-[10px] font-bold rounded-sm transition-all ${
-                              b.status === "pendente_revisao"
-                                ? "bg-warning text-warning-foreground shadow-sm"
-                                : "text-muted-foreground hover:text-foreground"
-                            }`}
-                            onClick={() => updateStatusMutation.mutate({ id: b.id, status: "pendente_revisao" })}
-                          >
-                            Vou Pagar
-                          </button>
-                        </div>
-                      </div>
-                    )}
-                    {b.isCardReminder && (
-                      <span className="text-xs text-muted-foreground italic">Lembrete Automático</span>
-                    )}
+            {/* Quick add bill form inside the day modal */}
+            <div className="border-t pt-4 mt-4">
+              {!showAddForm ? (
+                <Button 
+                  onClick={() => setShowAddForm(true)} 
+                  variant="outline" 
+                  className="w-full h-9 gap-1.5 border-dashed"
+                >
+                  <Plus className="h-4 w-4" /> Cadastrar Conta neste Dia
+                </Button>
+              ) : (
+                <div className="space-y-3 bg-muted/40 p-4 rounded-lg border">
+                  <div className="flex items-center justify-between mb-1">
+                    <h4 className="font-bold text-sm">Nova Conta para o Dia {selectedDayTxs.day}</h4>
+                    <button className="text-xs text-muted-foreground hover:text-foreground" onClick={() => setShowAddForm(false)}>Cancelar</button>
                   </div>
+
+                  <div className="grid gap-2">
+                    <div>
+                      <Label htmlFor="desc" className="text-xs">Descrição / Estabelecimento</Label>
+                      <Input 
+                        id="desc"
+                        value={newBillDesc} 
+                        onChange={(e) => setNewBillDesc(e.target.value)} 
+                        placeholder="Ex: Conta de Luz" 
+                        className="h-8.5 text-sm"
+                      />
+                    </div>
+
+                    <div className="grid grid-cols-2 gap-2">
+                      <div>
+                        <Label htmlFor="amount" className="text-xs">Valor (R$)</Label>
+                        <Input 
+                          id="amount"
+                          value={newBillAmount} 
+                          onChange={(e) => setNewBillAmount(e.target.value)} 
+                          placeholder="0,00" 
+                          className="h-8.5 text-sm"
+                        />
+                      </div>
+                      <div>
+                        <Label className="text-xs">Categoria</Label>
+                        <Select value={newBillCat} onValueChange={setNewBillCat}>
+                          <SelectTrigger className="h-8.5 text-sm">
+                            <SelectValue />
+                          </SelectTrigger>
+                          <SelectContent>
+                            {CATEGORIES.map(cat => (
+                              <SelectItem key={cat} value={cat}>{cat}</SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                      </div>
+                    </div>
+
+                    <div className="flex items-center justify-between pt-2">
+                      <div className="flex items-center gap-1.5">
+                        <Checkbox 
+                          id="fixed" 
+                          checked={newBillFixed} 
+                          onCheckedChange={(checked) => setNewBillFixed(checked === true)} 
+                        />
+                        <Label htmlFor="fixed" className="text-xs font-medium cursor-pointer select-none">
+                          Conta Fixa (Repetir todo mês)
+                        </Label>
+                      </div>
+
+                      <Tabs value={newBillClass} onValueChange={(v) => setNewBillClass(v as any)} className="w-auto">
+                        <TabsList className="h-7.5 p-0.5">
+                          <TabsTrigger value="PF" className="text-[10px] px-2 py-1">PF</TabsTrigger>
+                          <TabsTrigger value="PJ" className="text-[10px] px-2 py-1">PJ</TabsTrigger>
+                        </TabsList>
+                      </Tabs>
+                    </div>
+                  </div>
+
+                  <Button 
+                    className="w-full h-8 text-xs font-semibold mt-2" 
+                    onClick={() => addBillMutation.mutate()}
+                    disabled={addBillMutation.isPending}
+                  >
+                    Salvar Conta
+                  </Button>
                 </div>
-              ))}
+              )}
             </div>
           </Card>
         </div>
