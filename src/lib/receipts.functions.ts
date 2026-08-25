@@ -72,9 +72,7 @@ export async function extractTransactionsFromBlob(file: Blob): Promise<ExtractRe
           role: "user",
           content: [
             { type: "text", text: prompt },
-            mime.startsWith("image/")
-              ? { type: "image", image: base64Data }
-              : { type: "file", data: base64Data, mimeType: mime },
+            { type: "image", image: base64Data, mimeType: mime },
           ],
         },
       ],
