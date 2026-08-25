@@ -9,6 +9,8 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Sparkles, Trash2, Plus, CreditCard, Target, Building2, Calendar, HeartHandshake, Lock } from "lucide-react";
 import { toast } from "sonner";
+import { Switch } from "@/components/ui/switch";
+import { MessageCircle } from "lucide-react";
 
 export const Route = createFileRoute("/_authenticated/settings")({
   head: () => ({ meta: [{ title: "Configurações – Tephinancial" }] }),
@@ -35,6 +37,8 @@ function SettingsPage() {
   const [cards, setCards] = useState<CardConfig[]>([]);
   const [localClients, setLocalClients] = useState<any[]>([]);
   const [newPassword, setNewPassword] = useState("");
+  const [callmebotApikey, setCallmebotApikey] = useState("");
+  const [whatsappAlerts, setWhatsappAlerts] = useState(false);
 
   const { data: clients } = useQuery({
     queryKey: ["pj_clients", user?.id],
@@ -66,6 +70,8 @@ function SettingsPage() {
       if (profile.cardholders) {
         setCards(profile.cardholders as CardConfig[]);
       }
+      setCallmebotApikey(profile.callmebot_apikey || "");
+      setWhatsappAlerts(profile.whatsapp_alerts || false);
     }
   }, [profile]);
 
@@ -83,7 +89,9 @@ function SettingsPage() {
         monthly_budget: budget ? parseFloat(budget) : null,
         pj_tax_rate: taxRate ? parseFloat(taxRate) : null,
         accounting_closing_day: closingDay ? parseInt(closingDay) : null,
-        cardholders: cards as any
+        cardholders: cards as any,
+        callmebot_apikey: callmebotApikey,
+        whatsapp_alerts: whatsappAlerts
       });
       if (error) throw error;
 
@@ -225,6 +233,29 @@ function SettingsPage() {
           </div>
           <Button onClick={() => save.mutate()} disabled={save.isPending} className="w-fit">Salvar Alterações</Button>
         </div>
+      </Card>
+
+      <Card className="p-5 shadow-soft border-green-500/20">
+        <div className="flex items-center gap-2 mb-4">
+          <MessageCircle className="h-5 w-5 text-green-600" />
+          <h2 className="font-semibold text-green-700">Notificações por WhatsApp (CallMeBot)</h2>
+        </div>
+        <p className="text-sm text-muted-foreground mb-4">
+          Receba alertas diários sobre contas a vencer. O serviço é gratuito. Envie uma mensagem no WhatsApp para o número <strong>+34 691 62 17 28</strong> com o texto <code>I allow callmebot to send me messages</code> para pegar sua API Key.
+        </p>
+        <div className="grid gap-4 mb-4 md:grid-cols-2">
+          <div>
+            <Label>API Key do CallMeBot</Label>
+            <Input value={callmebotApikey} onChange={(e) => setCallmebotApikey(e.target.value)} placeholder="Sua chave secreta" />
+          </div>
+          <div className="flex flex-col justify-center pt-6">
+            <div className="flex items-center gap-2">
+              <Switch checked={whatsappAlerts} onCheckedChange={setWhatsappAlerts} />
+              <Label className="cursor-pointer" onClick={() => setWhatsappAlerts(!whatsappAlerts)}>Habilitar Alertas de Vencimento</Label>
+            </div>
+          </div>
+        </div>
+        <Button onClick={() => save.mutate()} disabled={save.isPending} className="w-fit bg-green-600 hover:bg-green-700 text-white">Salvar Configuração do WhatsApp</Button>
       </Card>
 
       <Card className="p-5 shadow-soft border-primary/20">
