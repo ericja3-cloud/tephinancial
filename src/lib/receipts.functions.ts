@@ -1,6 +1,6 @@
 import { createServerFn } from "@tanstack/react-start";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
-import { generateText, NoObjectGeneratedError, Output } from "ai";
+import { generateObject, NoObjectGeneratedError } from "ai";
 import { z } from "zod";
 import { createLovableAiGatewayProvider } from "./ai-gateway.server";
 
@@ -62,22 +62,22 @@ export async function extractTransactionsFromBlob(file: Blob): Promise<ExtractRe
     "Você é um assistente financeiro de alta precisão. Analise a imagem ou texto do documento (pode ser um recibo único ou uma fatura de cartão com dezenas de compras). Extraia TODAS as transações encontradas. Para cada transação, identifique se trata-se de uma DESPESA pessoal/comercial ou se é uma NOTA FISCAL DE SERVIÇO QUE PRECISO EMITIR/FATURAR. Classifique a transação entre 'PF' (Finanças Pessoais) ou 'PJ' (Finanças Empresariais). Identifique também o 'portador' (nome do portador do cartão, final do cartão ou 'Principal' caso não identifique adicional). Se for uma compra de mercado, conta de luz/água ou despesa conjunta, defina 'propriedade' como 'casa'. Retorne estritamente JSON contendo um array 'transacoes' preenchendo os campos descritos no schema.";
 
   try {
-    const { output } = await generateText({
+    const { object } = await generateObject({
       model,
-      output: Output.object({ schema: ExtractSchema }),
+      schema: ExtractSchema,
       messages: [
         {
           role: "user",
           content: [
             { type: "text", text: prompt },
             mime.startsWith("image/")
-              ? { type: "image", image: dataUrl }
-              : { type: "file", data: dataUrl, mimeType: mime },
+              ? { type: "image", image: buf }
+              : { type: "file", data: buf, mimeType: mime },
           ],
         },
       ],
     });
-    return output;
+    return object;
   } catch (err: any) {
     if (NoObjectGeneratedError.isInstance(err)) {
       return { transacoes: [] };

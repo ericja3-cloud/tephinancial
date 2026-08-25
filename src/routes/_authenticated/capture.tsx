@@ -24,7 +24,7 @@ export const Route = createFileRoute("/_authenticated/capture")({
 
 type Stage = "idle" | "uploading" | "processing" | "review";
 
-type TxForm = {
+export type TxForm = {
   id: string;
   doc_type: "despesa" | "faturamento_pj";
   type: "expense" | "income";
