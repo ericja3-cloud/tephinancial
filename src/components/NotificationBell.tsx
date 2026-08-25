@@ -92,21 +92,67 @@ export function NotificationBell() {
         }
       }
 
-      // Check Pending Transactions
+      // Check Pending Transactions / Bills due today or tomorrow
       const { data: pendingTxs } = await supabase.from("transactions")
         .select("*")
         .eq("user_id", user!.id)
         .eq("status", "pendente_revisao")
         .order("created_at", { ascending: false });
 
+      const tomorrow = new Date(now);
+      tomorrow.setDate(now.getDate() + 1);
+      const tomorrowStr = `${tomorrow.getFullYear()}-${String(tomorrow.getMonth() + 1).padStart(2, "0")}-${String(tomorrow.getDate()).padStart(2, "0")}`;
+
       if (pendingTxs) {
         for (const tx of pendingTxs) {
-          notifs.push({
-            id: `tx_${tx.id}`,
-            title: `Nova Transação: ${tx.establishment || tx.description || 'Desconhecido'}`,
-            description: `R$ ${tx.amount.toFixed(2).replace('.', ',')} - ${tx.category}. (Pendente de revisão)`,
-            type: "info"
-          });
+          if (tx.date === todayStr && tx.type === "expense") {
+            notifs.push({
+              id: `tx_today_${tx.id}`,
+              title: `⚠️ Conta Vence Hoje: ${tx.establishment || tx.description || 'Desconhecido'}`,
+              description: `Valor: R$ ${Number(tx.amount).toFixed(2).replace('.', ',')} · Categoria: ${tx.category}`,
+              type: "warning"
+            });
+          } else if (tx.date === tomorrowStr && tx.type === "expense") {
+            notifs.push({
+              id: `tx_tomorrow_${tx.id}`,
+              title: `📅 Conta Vence Amanhã: ${tx.establishment || tx.description || 'Desconhecido'}`,
+              description: `Valor: R$ ${Number(tx.amount).toFixed(2).replace('.', ',')} · Categoria: ${tx.category}`,
+              type: "info"
+            });
+          } else if (tx.source !== "manual") {
+            // Keep normal imported review alerts
+            notifs.push({
+              id: `tx_rev_${tx.id}`,
+              title: `Nova Transação: ${tx.establishment || tx.description || 'Desconhecido'}`,
+              description: `R$ ${Number(tx.amount).toFixed(2).replace('.', ',')} - ${tx.category}. (Pendente de revisão)`,
+              type: "info"
+            });
+          }
+        }
+      }
+
+      // Check credit card due dates
+      if (profile?.cardholders) {
+        const cards = profile.cardholders as any[];
+        const todayDay = now.getDate();
+        const tomorrowDay = tomorrow.getDate();
+
+        for (const card of cards) {
+          if (card.dueDay === todayDay) {
+            notifs.push({
+              id: `card_due_today_${card.id}`,
+              title: `💳 Vence Fatura: ${card.cardName}`,
+              description: "Hoje vence a fatura do seu cartão. Lembre-se de pagar para evitar juros!",
+              type: "warning"
+            });
+          } else if (card.dueDay === tomorrowDay) {
+            notifs.push({
+              id: `card_due_tomorrow_${card.id}`,
+              title: `📅 Fatura Vence Amanhã: ${card.cardName}`,
+              description: "A fatura do seu cartão vence amanhã. Organize seu pagamento.",
+              type: "info"
+            });
+          }
         }
       }
 
