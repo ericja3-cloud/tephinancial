@@ -17,6 +17,7 @@ async function testWhatsapp() {
       .from("transactions")
       .select("id, amount, description, category, establishment, user_id, date, status")
       .eq("type", "expense")
+      .eq("status", "pending")
       .order("created_at", { ascending: false })
       .limit(3);
 

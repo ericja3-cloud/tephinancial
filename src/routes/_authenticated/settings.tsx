@@ -7,10 +7,11 @@ import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Sparkles, Trash2, Plus, CreditCard, Target, Building2, Calendar, HeartHandshake, Lock } from "lucide-react";
+import { Sparkles, Trash2, Plus, CreditCard, Target, Building2, Calendar, HeartHandshake, Lock, Smartphone } from "lucide-react";
 import { toast } from "sonner";
 import { Switch } from "@/components/ui/switch";
 import { MessageCircle } from "lucide-react";
+import { subscribeToPushNotifications } from "@/lib/push.functions";
 
 export const Route = createFileRoute("/_authenticated/settings")({
   head: () => ({ meta: [{ title: "Configurações – Tephinancial" }] }),
@@ -256,6 +257,29 @@ function SettingsPage() {
           </div>
         </div>
         <Button onClick={() => save.mutate()} disabled={save.isPending} className="w-fit bg-green-600 hover:bg-green-700 text-white">Salvar Configuração do WhatsApp</Button>
+      </Card>
+
+      <Card className="p-5 shadow-soft border-primary/20">
+        <div className="flex items-center gap-2 mb-4">
+          <Smartphone className="h-5 w-5 text-primary" />
+          <h2 className="font-semibold text-primary">Notificações do App (Push)</h2>
+        </div>
+        <p className="text-sm text-muted-foreground mb-4">
+          Ative para receber alertas nativos no seu celular, mesmo com o aplicativo fechado (requer que o app esteja instalado na tela de início no iOS).
+        </p>
+        <Button 
+          onClick={async () => {
+            try {
+              await subscribeToPushNotifications();
+              toast.success("Notificações ativadas com sucesso neste aparelho!");
+            } catch (err: any) {
+              toast.error(err.message || "Erro ao ativar notificações.");
+            }
+          }}
+          className="w-fit"
+        >
+          Ativar Notificações neste Celular
+        </Button>
       </Card>
 
       <Card className="p-5 shadow-soft border-primary/20">
