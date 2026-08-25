@@ -282,14 +282,14 @@ function TransactionsPage() {
             <h1 className="text-2xl font-bold tracking-tight md:text-3xl">Transações</h1>
             <p className="mt-1 text-sm text-muted-foreground">Tudo o que a IA registrou pra você.</p>
           </div>
-          <div className="flex items-center gap-4">
+          <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 w-full sm:w-auto">
             <div className="flex items-center justify-between gap-2 rounded-lg border bg-card p-1">
               <Button variant="ghost" size="icon" className="h-8 w-8 z-10" onClick={() => setCurrentMonth(new Date(currentMonth.getFullYear(), currentMonth.getMonth() - 1, 1))}>
                 <ChevronLeft className="h-4 w-4" />
               </Button>
               <Popover>
                 <PopoverTrigger asChild>
-                  <div className="w-32 text-center text-sm font-medium capitalize cursor-pointer hover:bg-muted/50 rounded py-1 pointer-events-auto">
+                  <div className="flex-1 sm:w-32 text-center text-sm font-medium capitalize cursor-pointer hover:bg-muted/50 rounded py-1 pointer-events-auto">
                     {new Intl.DateTimeFormat('pt-BR', { month: 'long', year: 'numeric' }).format(currentMonth)}
                   </div>
                 </PopoverTrigger>
@@ -324,7 +324,7 @@ function TransactionsPage() {
                 <ChevronRight className="h-4 w-4" />
               </Button>
             </div>
-            <Button onClick={handleAdd}><Plus className="mr-2 h-4 w-4" /> Nova Transação</Button>
+            <Button onClick={handleAdd} className="w-full sm:w-auto"><Plus className="mr-2 h-4 w-4" /> Nova Transação</Button>
           </div>
         </div>
       </header>
