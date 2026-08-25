@@ -18,6 +18,8 @@ export const Route = createFileRoute("/_authenticated/settings")({
 type CardConfig = {
   id: string;
   cardName: string;
+  closingDay?: number;
+  dueDay?: number;
   holders: string[];
 };
 
@@ -145,6 +147,14 @@ function SettingsPage() {
 
   const updateCardName = (id: string, name: string) => {
     setCards(cards.map(c => c.id === id ? { ...c, cardName: name } : c));
+  };
+
+  const updateCardClosingDay = (id: string, day: number | undefined) => {
+    setCards(cards.map(c => c.id === id ? { ...c, closingDay: day } : c));
+  };
+
+  const updateCardDueDay = (id: string, day: number | undefined) => {
+    setCards(cards.map(c => c.id === id ? { ...c, dueDay: day } : c));
   };
 
   const removeCard = (id: string) => {
@@ -330,13 +340,38 @@ function SettingsPage() {
           {cards.map(card => (
             <div key={card.id} className="rounded-lg border p-4 bg-muted/30">
               <div className="mb-3 flex items-center justify-between">
-                <div className="flex items-center gap-2">
-                  <CreditCard className="h-4 w-4 text-primary" />
-                  <Input 
-                    value={card.cardName} 
-                    onChange={e => updateCardName(card.id, e.target.value)} 
-                    className="h-8 w-48 font-medium" 
-                  />
+                <div className="flex flex-wrap items-center gap-3">
+                  <div className="flex items-center gap-2">
+                    <CreditCard className="h-4 w-4 text-primary" />
+                    <Input 
+                      value={card.cardName} 
+                      onChange={e => updateCardName(card.id, e.target.value)} 
+                      className="h-8 w-48 font-medium" 
+                      placeholder="Ex: Nubank"
+                    />
+                  </div>
+                  <div className="flex items-center gap-1.5 bg-muted/60 px-2 py-1 rounded-md">
+                    <span className="text-[10px] text-muted-foreground font-semibold">Fechamento:</span>
+                    <Input 
+                      type="number" 
+                      min={1} 
+                      max={31} 
+                      placeholder="Ex: 3"
+                      value={card.closingDay || ""} 
+                      onChange={e => updateCardClosingDay(card.id, parseInt(e.target.value) || undefined)} 
+                      className="h-7 w-12 text-center text-xs p-1" 
+                    />
+                    <span className="text-[10px] text-muted-foreground font-semibold ml-1">Vencimento:</span>
+                    <Input 
+                      type="number" 
+                      min={1} 
+                      max={31} 
+                      placeholder="Ex: 10"
+                      value={card.dueDay || ""} 
+                      onChange={e => updateCardDueDay(card.id, parseInt(e.target.value) || undefined)} 
+                      className="h-7 w-12 text-center text-xs p-1" 
+                    />
+                  </div>
                 </div>
                 <Button variant="ghost" size="sm" onClick={() => removeCard(card.id)} className="text-destructive">
                   <Trash2 className="h-4 w-4" />
