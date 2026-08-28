@@ -61,11 +61,12 @@ export async function parsePdfOrImage(path: string, extract: any): Promise<TxFor
   const parsed: TxForm[] = txs.map((t: any) => {
     const cat = t.categoria_sugerida || inferCategory(t.descricao_servico || t.estabelecimento || "");
     const isPJ = t.tipo_documento === "faturamento_pj";
+    const isIncome = isPJ || t.tipo_documento === "devolucao" || (t.estabelecimento || "").toLowerCase().includes("devolução");
     const date = parseDateString(t.data);
     return {
       id: crypto.randomUUID(),
       doc_type: t.tipo_documento || "despesa",
-      type: isPJ ? "income" : "expense",
+      type: isIncome ? "income" : "expense",
       payment_method: "Cartão de Crédito",
       target_source: isPJ ? t.estabelecimento ?? "" : "",
       description: t.descricao_servico ?? "",
