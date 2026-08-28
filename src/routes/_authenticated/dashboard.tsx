@@ -103,8 +103,11 @@ function Dashboard() {
   const filteredTxs = filter === "Tudo" ? nonSharedTxs : nonSharedTxs.filter((t) => t.classification === filter);
   
   const monthTxs = filteredTxs.filter((t) => monthKey(t.date) === thisMonth);
-  const incomes = monthTxs.filter((t) => t.type === "income").reduce((a, b) => a + Number(b.amount), 0);
-  const expenses = monthTxs.filter((t) => t.type === "expense").reduce((a, b) => a + Number(b.amount), 0);
+  
+  const isInternalTransfer = (t: any) => t.payment_method === "Repasse" || t.category === "Transferência entre Contas";
+  
+  const incomes = monthTxs.filter((t) => t.type === "income" && (filter !== "Tudo" || !isInternalTransfer(t))).reduce((a, b) => a + Number(b.amount), 0);
+  const expenses = monthTxs.filter((t) => t.type === "expense" && (filter !== "Tudo" || !isInternalTransfer(t))).reduce((a, b) => a + Number(b.amount), 0);
   const balance = incomes - expenses;
   const countMonth = monthTxs.length;
 
