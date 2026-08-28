@@ -181,17 +181,63 @@ function StatementUploadPage() {
 
   return (
     <div className="mx-auto max-w-3xl space-y-6 p-6">
-      <h1 className="text-2xl font-bold">Importar Extrato Mensal</h1>
-      <Card className="p-4">
-        <input type="file" accept=".csv,application/pdf,image/*" onChange={handleFileChange} className="mb-4" />
-        {preview && file?.type === 'application/pdf' ? (
-          <object data={preview} type="application/pdf" className="mb-4 h-96 w-full rounded" />
-        ) : preview ? (
-          <img src={preview} alt="preview" className="mb-4 max-h-48 w-full max-w-full object-contain rounded" />
-        ) : null}
-        <Button onClick={processFile} disabled={loading || !file}>
-          {loading ? "Processando..." : "Importar"}
-        </Button>
+      <div>
+        <h1 className="text-2xl font-bold">Importar Extrato Mensal</h1>
+        <p className="text-muted-foreground mt-1">Faça o upload do seu extrato em CSV, PDF ou Imagem.</p>
+      </div>
+      
+      <Card className="p-6">
+        <div className="flex flex-col gap-6">
+          
+          {/* Custom File Upload Area */}
+          <div className="relative">
+            <input 
+              type="file" 
+              id="file-upload"
+              accept=".csv,application/pdf,image/*" 
+              onChange={handleFileChange} 
+              className="absolute inset-0 w-full h-full opacity-0 cursor-pointer" 
+            />
+            <div className={`border-2 border-dashed rounded-xl p-8 text-center transition-colors ${file ? 'border-primary/50 bg-primary/5' : 'border-border hover:border-primary/50 hover:bg-muted/50'}`}>
+              <div className="flex flex-col items-center justify-center gap-3">
+                <div className="p-3 bg-muted rounded-full">
+                  <Zap className="h-6 w-6 text-primary" />
+                </div>
+                {file ? (
+                  <div>
+                    <p className="font-semibold text-sm">{file.name}</p>
+                    <p className="text-xs text-muted-foreground mt-1">{(file.size / 1024 / 1024).toFixed(2)} MB</p>
+                  </div>
+                ) : (
+                  <div>
+                    <p className="font-semibold text-sm">Clique ou arraste um arquivo aqui</p>
+                    <p className="text-xs text-muted-foreground mt-1">Suporta arquivos .CSV, .PDF, .JPG e .PNG</p>
+                  </div>
+                )}
+              </div>
+            </div>
+          </div>
+
+          {preview && file?.type === 'application/pdf' ? (
+            <div className="border rounded-xl overflow-hidden bg-muted/20">
+              <object data={preview} type="application/pdf" className="h-[500px] w-full" />
+            </div>
+          ) : preview ? (
+            <div className="border rounded-xl p-2 bg-muted/20 flex justify-center">
+              <img src={preview} alt="preview" className="max-h-64 object-contain rounded-lg" />
+            </div>
+          ) : null}
+
+          <Button 
+            onClick={processFile} 
+            disabled={loading || !file}
+            size="lg"
+            className="w-full text-base font-semibold"
+          >
+            {loading ? "Processando..." : file ? "Importar Arquivo" : "Selecione um arquivo"}
+          </Button>
+          
+        </div>
       </Card>
     </div>
   );
