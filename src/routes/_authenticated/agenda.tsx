@@ -103,7 +103,21 @@ function AgendaPage() {
       toast.error(`Erro ao atualizar: ${err.message}`);
     }
   });
-
+  // Delete transaction
+  const deleteMutation = useMutation({
+    mutationFn: async (id: string) => {
+      const { error } = await supabase.from("transactions").delete().eq("id", id);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["transactions"] });
+      toast.success("Conta excluída com sucesso!");
+      setSelectedDayTxs(null);
+    },
+    onError: (err) => {
+      toast.error(`Erro ao excluir: ${err.message}`);
+    }
+  });
   // Add bill mutation
   const addBillMutation = useMutation({
     mutationFn: async () => {
@@ -502,6 +516,18 @@ function AgendaPage() {
             <div className="divide-y">
               {upcomingBills.map((b) => {
                 const isOverdue = b.date < new Date().toISOString().split("T")[0];
+                const duplicateOf = txs.find(t => {
+                  if (t.id === b.id) return false;
+                  if (t.status === "pendente_revisao") return false;
+                  const tDate = t.date.split('T')[0];
+                  const bDate = b.date.split('T')[0];
+                  if (tDate !== bDate) return false;
+                  if (t.amount !== b.amount) return false;
+                  const tEst = (t.establishment || t.description || "").toLowerCase().trim();
+                  const bEst = (b.establishment || b.description || "").toLowerCase().trim();
+                  return tEst === bEst || tEst.includes(bEst) || bEst.includes(tEst);
+                });
+
                 return (
                   <div key={b.id} className="flex flex-wrap items-center justify-between gap-3 py-4.5">
                     <div className="flex items-start gap-3 min-w-0 flex-1">
@@ -519,19 +545,41 @@ function AgendaPage() {
                           {b.classification === "PF" && <Badge variant="outline" className="border-blue-500/30 bg-blue-500/10 text-blue-600 px-1 py-0 text-[10px]">PF</Badge>}
                           {b.classification === "PJ" && <Badge variant="outline" className="border-purple-500/30 bg-purple-500/10 text-purple-600 px-1 py-0 text-[10px]">PJ</Badge>}
                         </div>
+                        
+                        {duplicateOf && (
+                          <div className="mt-2 rounded bg-warning/10 border border-warning/20 p-2 text-xs text-warning-foreground flex items-center gap-1.5 animate-in fade-in max-w-sm">
+                            <AlertCircle className="h-3.5 w-3.5 shrink-0" />
+                            <span>
+                              Possível duplicata da conta já paga: <strong>{duplicateOf.establishment || duplicateOf.description}</strong>.
+                            </span>
+                          </div>
+                        )}
                       </div>
                     </div>
                     
-                    <div className="flex items-center gap-4 shrink-0">
+                    <div className="flex flex-col sm:flex-row items-end sm:items-center gap-4 shrink-0">
                       <span className="font-bold text-sm text-destructive-foreground">{brl(b.amount)}</span>
-                      <Button 
-                        size="sm" 
-                        variant="outline" 
-                        className="h-8 border-success/30 hover:bg-success/15 hover:text-success gap-1 text-success-foreground" 
-                        onClick={() => updateStatusMutation.mutate({ id: b.id, status: "confirmado" })}
-                      >
-                        <Check className="h-3.5 w-3.5" /> Já Paguei
-                      </Button>
+                      <div className="flex flex-col gap-1.5">
+                        <Button 
+                          size="sm" 
+                          variant="outline" 
+                          className="h-8 border-success/30 hover:bg-success/15 hover:text-success gap-1 text-success-foreground w-full sm:w-auto" 
+                          onClick={() => updateStatusMutation.mutate({ id: b.id, status: "confirmado" })}
+                        >
+                          <Check className="h-3.5 w-3.5" /> Já Paguei
+                        </Button>
+                        {duplicateOf && (
+                          <Button 
+                            size="sm" 
+                            variant="ghost" 
+                            className="h-7 text-xs text-muted-foreground hover:text-destructive w-full sm:w-auto" 
+                            onClick={() => deleteMutation.mutate(b.id)}
+                            disabled={deleteMutation.isPending}
+                          >
+                            Excluir Duplicata
+                          </Button>
+                        )}
+                      </div>
                     </div>
                   </div>
                 );
