@@ -16,15 +16,24 @@ export async function parseCsv(file: File): Promise<TxForm[]> {
       complete: (results) => {
         try {
           const data: TxForm[] = results.data.map((row: any) => {
-            // Normaliza data para ISO (dd/mm/yyyy ou yyyy-mm-dd)
             const date = normalizeDate(row.date);
-            const amount = Number(row.amount).toString();
+            const rawAmount = Number(row.amount);
+            const amount = Math.abs(rawAmount).toString();
+            
+            const desc = (row.description || row.estabelecimento || "").toLowerCase();
             const category = row.category || inferCategory(row.description || row.estabelecimento || "");
-            const isImposto = category === "Impostos/Taxas" || ["das ", "darf", "inss", "imposto", "simples naciona"].some(kw => (row.description || row.estabelecimento || "").toLowerCase().includes(kw));
+            
+            const isImposto = category === "Impostos/Taxas" || ["das ", "darf", "inss", "imposto", "simples naciona"].some(kw => desc.includes(kw));
+            const isFaturamento = desc.includes("faturamento") || desc.includes("nota fiscal") || desc.includes("nf ");
+            const isPixReceived = desc.includes("recebido") || desc.includes("transferência recebida") || desc.includes("pix recebido");
+            
+            const isIncome = rawAmount > 0 || isFaturamento || isPixReceived;
+            const isPJ = isImposto || isFaturamento;
+            
             return {
               id: crypto.randomUUID(),
-              doc_type: "despesa",
-              type: "expense",
+              doc_type: isFaturamento ? "faturamento_pj" : "despesa",
+              type: isIncome ? "income" : "expense",
               payment_method: "Cartão de Crédito",
               target_source: "",
               description: row.description || "",
@@ -32,7 +41,7 @@ export async function parseCsv(file: File): Promise<TxForm[]> {
               amount,
               date,
               category,
-              classification: isImposto ? "PJ" : "PF",
+              classification: isPJ ? "PJ" : "PF",
               cardholder: "Principal",
               confidence: null,
               sharing_type: "private",
@@ -74,7 +83,7 @@ export async function parsePdfOrImage(path: string, extract: any): Promise<TxFor
       amount: t.valor != null ? String(t.valor) : "0",
       date,
       category: cat as any,
-      classification: t.classificacao === "PJ" ? "PJ" : "PF",
+      classification: (isPJ || t.classificacao === "PJ") ? "PJ" : "PF",
       cardholder: t.portador || "Principal",
       confidence: t.confiança ?? null,
       sharing_type: "private",

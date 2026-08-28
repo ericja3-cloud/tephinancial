@@ -160,7 +160,7 @@ function StatementUploadPage() {
             amount: t.valor != null ? String(t.valor) : "0",
             date,
             category: cat as any,
-            classification: t.classificacao === "PJ" ? "PJ" : "PF",
+            classification: (isPJ || t.classificacao === "PJ") ? "PJ" : "PF",
             cardholder: t.portador || "Principal",
             confidence: t.confiança ?? null,
             sharing_type: "private",
