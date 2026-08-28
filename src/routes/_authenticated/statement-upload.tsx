@@ -51,7 +51,11 @@ function StatementUploadPage() {
             
             const isSameDate = exDate === tDate;
             const isSameAmount = ex.amount === tAmount;
-            const isSameEst = exEst === tEst || exEst.includes(tEst) || tEst.includes(exEst);
+            
+            // Fix: ensure strings are long enough before partial matching to avoid matching empty or 1-letter strings
+            const isSameEst = exEst === tEst || 
+                              (tEst.length > 2 && exEst.includes(tEst)) || 
+                              (exEst.length > 2 && tEst.includes(exEst));
 
             return isSameDate && isSameAmount && isSameEst;
          });
