@@ -20,6 +20,7 @@ export async function parseCsv(file: File): Promise<TxForm[]> {
             const date = normalizeDate(row.date);
             const amount = Number(row.amount).toString();
             const category = row.category || inferCategory(row.description || row.estabelecimento || "");
+            const isImposto = category === "Impostos/Taxas" || ["das ", "darf", "inss", "imposto", "simples naciona"].some(kw => (row.description || row.estabelecimento || "").toLowerCase().includes(kw));
             return {
               id: crypto.randomUUID(),
               doc_type: "despesa",
@@ -31,7 +32,7 @@ export async function parseCsv(file: File): Promise<TxForm[]> {
               amount,
               date,
               category,
-              classification: "PF",
+              classification: isImposto ? "PJ" : "PF",
               cardholder: "Principal",
               confidence: null,
               sharing_type: "private",

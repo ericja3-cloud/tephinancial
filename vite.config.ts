@@ -24,7 +24,7 @@ export default defineConfig({
     port: 8080,
   },
   ssr: {
-    noExternal: ['@supabase/supabase-js', '@supabase/auth-js', 'tslib'],
+    noExternal: ['@supabase/supabase-js', '@supabase/auth-js'],
   },
   resolve: {
     alias: {

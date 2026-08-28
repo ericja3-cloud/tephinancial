@@ -9,6 +9,7 @@
   "Cuidados Pessoais": ["salao", "cabeleireiro", "barbearia", "estetica", "manicure", "perfume", "cosmetico", "boticario", "natura", "avon"],
   "Pets": ["petz", "cobasi", "petshop", "veterinario", "racao", "banho e tosa"],
   "Contas Fixas": ["seguro", "porto seguro", "tokio marine", "mapfre", "emprestimo", "financiamento", "consorcio", "mensalidade"],
-  "Impostos/Taxas": ["iof", "juros", "multa", "tarifa", "anuidade", "ipva", "licenciamento", "darf", "das", "irpf"],
+  "Cartão de Crédito": ["itau unibanco", "pagamento fatura", "fatura", "cartao de credito", "nubank", "bradesco cartoes", "pagamento cartao"],
+  "Impostos/Taxas": ["iof", "juros", "multa", "tarifa", "anuidade", "ipva", "licenciamento", "darf", "das", "irpf", "simples naciona", "simples nacional", "inss", "gps"],
   "Serviços": ["limpeza", "faxina", "diarista", "pedreiro", "eletricista", "encanador", "chaveiro", "mecanico", "oficina"]
 }

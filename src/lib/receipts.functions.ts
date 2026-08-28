@@ -56,19 +56,20 @@ export async function extractTransactionsFromBlob(file: Blob): Promise<ExtractRe
   // Usando o provedor oficial do Google no Vercel AI SDK
   const { createGoogleGenerativeAI } = await import('@ai-sdk/google');
   const google = createGoogleGenerativeAI({ apiKey: key });
-  const model = google("gemini-2.5-flash");
+  const model = google("gemini-3.6-flash");
 
   const base64Data = buf.toString("base64");
 
   const prompt =
-    "Você é um assistente financeiro de alta precisão. Analise a imagem ou texto do documento (pode ser um recibo único ou uma fatura de cartão com dezenas de compras). Extraia TODAS as transações encontradas. Para cada transação, identifique se trata-se de uma DESPESA pessoal/comercial ou se é uma NOTA FISCAL DE SERVIÇO QUE PRECISO EMITIR/FATURAR. Classifique a transação entre 'PF' (Finanças Pessoais) ou 'PJ' (Finanças Empresariais). Identifique também o 'portador' (nome do portador do cartão, final do cartão ou 'Principal' caso não identifique adicional). Se for uma compra de mercado, conta de luz/água ou despesa conjunta, defina 'propriedade' como 'casa'. Retorne estritamente JSON contendo um array 'transacoes' preenchendo os campos descritos no schema.";
+    "Você é um assistente financeiro de alta precisão. Analise a imagem ou texto do documento (pode ser um recibo único ou uma fatura de cartão com dezenas de compras). Extraia TODAS as transações encontradas. Para cada transação, identifique se trata-se de uma DESPESA pessoal/comercial ou se é uma NOTA FISCAL DE SERVIÇO QUE PRECISO EMITIR/FATURAR. Classifique a transação entre 'PF' (Finanças Pessoais) ou 'PJ' (Finanças Empresariais). IMPORTANTE: Despesas de IMPOSTOS (DAS, DARF, INSS, etc) são sempre da 'PJ' e NUNCA da 'PF'. Identifique também o 'portador' (nome do portador do cartão, final do cartão ou 'Principal' caso não identifique adicional). Se for uma compra de mercado, conta de luz/água ou despesa conjunta, defina 'propriedade' como 'casa'. Retorne estritamente JSON contendo um array 'transacoes' preenchendo os campos descritos no schema.";
 
   try {
     const { object } = await generateObject({
       model,
       schema: ExtractSchema,
-      maxRetries: 1,
-      abortSignal: AbortSignal.timeout(15000),
+      maxRetries: 2,
+      maxTokens: 8192,
+      abortSignal: AbortSignal.timeout(300000),
       messages: [
         {
           role: "user",

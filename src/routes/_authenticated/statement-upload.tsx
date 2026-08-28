@@ -26,7 +26,42 @@ function StatementUploadPage() {
     mutationFn: async (txs: TxForm[]) => {
       const user = (await supabase.auth.getUser()).data.user;
       if (!user) throw new Error("Usuário não autenticado");
-      const inserts = txs.map((t) => ({
+
+      const dates = txs.map(t => new Date(t.date).getTime()).filter(t => !isNaN(t));
+      const minDate = dates.length ? new Date(Math.min(...dates)).toISOString() : "1970-01-01T00:00:00.000Z";
+      const maxDate = dates.length ? new Date(Math.max(...dates)).toISOString() : "2099-12-31T23:59:59.999Z";
+
+      const { data: existingTxs, error: fetchError } = await supabase
+        .from("transactions")
+        .select("id, date, amount, establishment, description")
+        .eq("user_id", user.id)
+        .gte("date", minDate)
+        .lte("date", maxDate);
+        
+      if (fetchError) throw fetchError;
+
+      const newTxs = txs.filter(t => {
+         const tDate = t.date.split('T')[0];
+         const tAmount = parseFloat(t.amount);
+         const tEst = (t.establishment || t.description || "").toLowerCase().trim();
+         
+         return !existingTxs.some(ex => {
+            const exDate = ex.date.split('T')[0];
+            const exEst = (ex.establishment || ex.description || "").toLowerCase().trim();
+            
+            const isSameDate = exDate === tDate;
+            const isSameAmount = ex.amount === tAmount;
+            const isSameEst = exEst === tEst || exEst.includes(tEst) || tEst.includes(exEst);
+
+            return isSameDate && isSameAmount && isSameEst;
+         });
+      });
+
+      if (newTxs.length === 0) {
+        throw new Error("Todas as transações deste extrato já estavam cadastradas.");
+      }
+
+      const inserts = newTxs.map((t) => ({
         user_id: user.id,
         type: t.type,
         payment_method: t.payment_method,
@@ -40,7 +75,7 @@ function StatementUploadPage() {
         category: t.category,
         date: t.date,
         source: "upload",
-        status: t.status,
+        status: "confirmado",
         ai_confidence: t.confidence,
         receipt_url: null,
         sharing_type: t.sharing_type,
@@ -62,10 +97,8 @@ function StatementUploadPage() {
     const f = e.target.files?.[0];
     if (!f) return;
     setFile(f);
-    if (f.type.startsWith("image/")) {
+    if (f.type.startsWith("image/") || f.type === "application/pdf") {
       setPreview(URL.createObjectURL(f));
-    } else if (f.type === "application/pdf") {
-      setPreview(null);
     } else {
       setPreview(null);
     }
@@ -127,7 +160,11 @@ function StatementUploadPage() {
       <h1 className="text-2xl font-bold">Importar Extrato Mensal</h1>
       <Card className="p-4">
         <input type="file" accept=".csv,application/pdf,image/*" onChange={handleFileChange} className="mb-4" />
-        {preview && <img src={preview} alt="preview" className="mb-4 max-h-48 w-full max-w-full object-contain rounded" />}
+        {preview && file?.type === 'application/pdf' ? (
+          <object data={preview} type="application/pdf" className="mb-4 h-96 w-full rounded" />
+        ) : preview ? (
+          <img src={preview} alt="preview" className="mb-4 max-h-48 w-full max-w-full object-contain rounded" />
+        ) : null}
         <Button onClick={processFile} disabled={loading || !file}>
           {loading ? "Processando..." : "Importar"}
         </Button>

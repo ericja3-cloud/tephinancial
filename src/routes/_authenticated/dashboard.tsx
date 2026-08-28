@@ -257,7 +257,13 @@ function Dashboard() {
               </div>
               <div>
                 <p className="font-semibold">{pending.length} {pending.length === 1 ? "transação pendente" : "transações pendentes"} de revisão</p>
-                <p className="text-sm text-muted-foreground">Chegaram por e-mail e aguardam sua confirmação.</p>
+                <p className="text-sm text-muted-foreground">
+                  {pending.every(t => t.source === 'email') 
+                    ? "Chegaram por e-mail e aguardam sua confirmação." 
+                    : pending.every(t => t.source === 'upload')
+                      ? "Foram importadas e aguardam sua confirmação."
+                      : "Aguardam sua confirmação."}
+                </p>
               </div>
             </div>
           </div>
