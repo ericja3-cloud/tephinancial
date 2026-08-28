@@ -545,6 +545,8 @@ function TransactionsPage() {
                         <SelectItem value="Cartão de Crédito (Parcelado)">Cartão de Crédito (Parcelado)</SelectItem>
                         <SelectItem value="Cartão de Débito">Cartão de Débito</SelectItem>
                         <SelectItem value="Dinheiro">Dinheiro</SelectItem>
+                    <SelectItem value="Saldo em Conta">Saldo em Conta</SelectItem>
+                    <SelectItem value="Repasse">Repasse</SelectItem>
                         <SelectItem value="Transferência">Transferência</SelectItem>
                       </SelectContent>
                     </Select>
