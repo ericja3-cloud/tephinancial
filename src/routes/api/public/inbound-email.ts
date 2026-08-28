@@ -87,7 +87,7 @@ export const Route = createFileRoute("/api/public/inbound-email")({
           // 5. Salvar as transações no banco de dados como "pendente_revisao"
           const inserts = txs.map(t => {
             const cat = (t.categoria_sugerida && (CATEGORIES as readonly string[]).includes(t.categoria_sugerida) ? t.categoria_sugerida : "Outros") as Category;
-            const isPJ = t.tipo_documento === "faturamento_pj";
+            const isPJ = t.tipo_documento === "receita";
             const amount = t.valor != null ? Number(t.valor) : 0;
             
             return {

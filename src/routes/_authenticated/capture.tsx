@@ -26,7 +26,7 @@ type Stage = "idle" | "uploading" | "processing" | "review";
 
 export type TxForm = {
   id: string;
-  doc_type: "despesa" | "faturamento_pj";
+  doc_type: "despesa" | "receita";
   type: "expense" | "income";
   payment_method: string;
   target_source: string;
@@ -134,7 +134,7 @@ const parseDateString = (d: string | null | undefined): string => {
 
       const newForms: TxForm[] = txs.map(t => {
         const cat = (t.categoria_sugerida && (CATEGORIES as readonly string[]).includes(t.categoria_sugerida) ? t.categoria_sugerida : "Outros") as Category;
-        const isPJ = t.tipo_documento === "faturamento_pj";
+        const isPJ = t.tipo_documento === "receita";
         return {
           id: crypto.randomUUID(),
           doc_type: t.tipo_documento || "despesa",

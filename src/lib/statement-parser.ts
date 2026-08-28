@@ -32,7 +32,7 @@ export async function parseCsv(file: File): Promise<TxForm[]> {
             
             return {
               id: crypto.randomUUID(),
-              doc_type: isFaturamento ? "faturamento_pj" : "despesa",
+              doc_type: isFaturamento ? "receita" : "despesa",
               type: isIncome ? "income" : "expense",
               payment_method: "Cartão de Crédito",
               target_source: "",
@@ -69,7 +69,7 @@ export async function parsePdfOrImage(path: string, extract: any): Promise<TxFor
   const txs = (result as any).transacoes || [];
   const parsed: TxForm[] = txs.map((t: any) => {
     const cat = t.categoria_sugerida || inferCategory(t.descricao_servico || t.estabelecimento || "");
-    const isPJ = t.tipo_documento === "faturamento_pj";
+    const isPJ = t.tipo_documento === "receita";
     const isIncome = isPJ || t.tipo_documento === "devolucao" || (t.estabelecimento || "").toLowerCase().includes("devolução");
     const date = parseDateString(t.data);
     return {
@@ -83,7 +83,7 @@ export async function parsePdfOrImage(path: string, extract: any): Promise<TxFor
       amount: t.valor != null ? String(t.valor) : "0",
       date,
       category: cat as any,
-      classification: (isPJ || t.classificacao === "PJ") ? "PJ" : "PF",
+      classification: t.classificacao === "PJ" ? "PJ" : "PF",
       cardholder: t.portador || "Principal",
       confidence: t.confiança ?? null,
       sharing_type: "private",

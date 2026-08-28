@@ -57,7 +57,7 @@ type Tx = {
 
 type TxForm = {
   id: string;
-  doc_type: "despesa" | "faturamento_pj";
+  doc_type: "despesa" | "receita";
   type: "expense" | "income";
   payment_method: string;
   target_source: string;

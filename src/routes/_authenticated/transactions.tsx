@@ -391,9 +391,9 @@ function TransactionsPage() {
                         </Badge>
                       )}
                     </p>
-                    {t.doc_type === "faturamento_pj" && t.type !== "expense" && (
+                    {t.doc_type === "receita" && t.type !== "expense" && (
                       <Badge variant="outline" className="border-emerald-500/30 bg-emerald-500/10 text-emerald-600 gap-1 px-1.5 py-0 text-[10px]">
-                        <Briefcase className="h-3 w-3" /> Faturamento PJ
+                        <Briefcase className="h-3 w-3" /> Receita / Faturamento
                       </Badge>
                     )}
                     {t.status === "pendente_revisao" && (
@@ -488,7 +488,7 @@ function TransactionsPage() {
                   <div>
                     <Label>Tipo</Label>
                     <Select value={editing.type} onValueChange={(v) => {
-                      const docType = v === "expense" && editing.doc_type === "faturamento_pj" ? "despesa" : editing.doc_type;
+                      const docType = v === "expense" && editing.doc_type === "receita" ? "despesa" : editing.doc_type;
                       setEditing({ ...editing, type: v as any, doc_type: docType });
                     }}>
                       <SelectTrigger><SelectValue /></SelectTrigger>
@@ -650,7 +650,7 @@ function TransactionsPage() {
                 </div>
               </div>
               
-              {editing.doc_type === "faturamento_pj" && (
+              {editing.doc_type === "receita" && (
                 <div>
                   <Label>Descrição do Serviço</Label>
                   <Input value={editing.description ?? ""} onChange={(e) => setEditing({ ...editing, description: e.target.value })} />

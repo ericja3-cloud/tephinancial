@@ -146,7 +146,7 @@ function StatementUploadPage() {
         const extractedTxs = (result as any).transacoes || [];
         txs = extractedTxs.map((t: any) => {
           const cat = t.categoria_sugerida || inferCategory(t.descricao_servico || t.estabelecimento || "");
-          const isPJ = t.tipo_documento === "faturamento_pj";
+          const isPJ = t.tipo_documento === "receita";
           const isIncome = isPJ || t.tipo_documento === "devolucao" || (t.estabelecimento || "").toLowerCase().includes("devolução");
           const date = parseDateString(t.data);
           return {
@@ -160,7 +160,7 @@ function StatementUploadPage() {
             amount: t.valor != null ? String(t.valor) : "0",
             date,
             category: cat as any,
-            classification: (isPJ || t.classificacao === "PJ") ? "PJ" : "PF",
+            classification: t.classificacao === "PJ" ? "PJ" : "PF",
             cardholder: t.portador || "Principal",
             confidence: t.confiança ?? null,
             sharing_type: "private",

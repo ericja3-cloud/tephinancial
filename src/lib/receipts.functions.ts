@@ -7,7 +7,7 @@ import { createLovableAiGatewayProvider } from "./ai-gateway.server";
 const CATEGORIES = ["Alimentação", "Transporte", "Lazer", "Saúde", "Contas Fixas", "Serviços Prestados", "Outros"] as const;
 
 const TransactionSchema = z.object({
-  tipo_documento: z.enum(["despesa", "faturamento_pj"]).nullable(),
+  tipo_documento: z.enum(["despesa", "receita"]).nullable(),
   estabelecimento: z.string().nullable(),
   valor: z.number().nullable(),
   data: z.string().nullable(),
