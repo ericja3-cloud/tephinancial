@@ -40,12 +40,12 @@ function StatementUploadPage() {
         
       if (fetchError) throw fetchError;
 
-      const newTxs = txs.filter(t => {
+      const inserts = txs.map(t => {
          const tDate = t.date.split('T')[0];
          const tAmount = parseFloat(t.amount);
          const tEst = (t.establishment || t.description || "").toLowerCase().trim();
          
-         return !existingTxs.some(ex => {
+         const isDuplicate = existingTxs.some(ex => {
             const exDate = ex.date.split('T')[0];
             const exEst = (ex.establishment || ex.description || "").toLowerCase().trim();
             
@@ -55,32 +55,28 @@ function StatementUploadPage() {
 
             return isSameDate && isSameAmount && isSameEst;
          });
+
+         return {
+            user_id: user.id,
+            type: t.type,
+            payment_method: t.payment_method,
+            target_source: t.target_source,
+            doc_type: t.doc_type,
+            classification: t.classification,
+            cardholder: t.cardholder,
+            amount: tAmount,
+            description: t.description || t.establishment || "Comprovante",
+            establishment: t.establishment || null,
+            category: t.category,
+            date: t.date,
+            source: "upload",
+            status: isDuplicate ? "pendente_revisao" : "confirmado",
+            ai_confidence: t.confidence,
+            receipt_url: null,
+            sharing_type: t.sharing_type,
+            paid_by: null,
+         };
       });
-
-      if (newTxs.length === 0) {
-        throw new Error("Todas as transações deste extrato já estavam cadastradas.");
-      }
-
-      const inserts = newTxs.map((t) => ({
-        user_id: user.id,
-        type: t.type,
-        payment_method: t.payment_method,
-        target_source: t.target_source,
-        doc_type: t.doc_type,
-        classification: t.classification,
-        cardholder: t.cardholder,
-        amount: parseFloat(t.amount),
-        description: t.description || t.establishment || "Comprovante",
-        establishment: t.establishment || null,
-        category: t.category,
-        date: t.date,
-        source: "upload",
-        status: "confirmado",
-        ai_confidence: t.confidence,
-        receipt_url: null,
-        sharing_type: t.sharing_type,
-        paid_by: null,
-      }));
       const { error } = await supabase.from("transactions").upsert(inserts);
       if (error) throw error;
     },
