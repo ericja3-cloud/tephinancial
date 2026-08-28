@@ -426,6 +426,11 @@ function TransactionsPage() {
                       <span className="inline-block h-2 w-2 rounded-full" style={{ background: CATEGORY_COLORS[t.category as Category] ?? "#9CA3AF" }} />
                       {t.category}
                     </span>
+                    {t.payment_method && (
+                      <Badge variant="secondary" className="gap-1 px-1.5 py-0 text-[10px] bg-slate-100 text-slate-600 border-slate-200">
+                        {t.payment_method}
+                      </Badge>
+                    )}
                     <Badge variant="secondary" className="gap-1 px-1.5 py-0 text-[10px]">
                       <SourceIcon source={t.source} />
                       {SOURCE_LABEL[t.source] ?? t.source}
