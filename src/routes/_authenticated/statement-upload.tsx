@@ -40,26 +40,49 @@ function StatementUploadPage() {
         
       if (fetchError) throw fetchError;
 
-      const inserts = txs.map(t => {
+      const processedTxs: any[] = [];
+      const newTxs = txs.filter(t => {
          const tDate = t.date.split('T')[0];
          const tAmount = parseFloat(t.amount);
          const tEst = (t.establishment || t.description || "").toLowerCase().trim();
          
-         const isDuplicate = existingTxs.some(ex => {
+         const isDuplicateDB = existingTxs.some(ex => {
             const exDate = ex.date.split('T')[0];
             const exEst = (ex.establishment || ex.description || "").toLowerCase().trim();
             
             const isSameDate = exDate === tDate;
             const isSameAmount = ex.amount === tAmount;
-            
-            // Fix: ensure strings are long enough before partial matching to avoid matching empty or 1-letter strings
             const isSameEst = exEst === tEst || 
                               (tEst.length > 2 && exEst.includes(tEst)) || 
                               (exEst.length > 2 && tEst.includes(exEst));
 
             return isSameDate && isSameAmount && isSameEst;
          });
+         
+         const isDuplicateSelf = processedTxs.some(ex => {
+            const isSameDate = ex.date === tDate;
+            const isSameAmount = ex.amount === tAmount;
+            const exEst = ex.est;
+            const isSameEst = exEst === tEst || 
+                              (tEst.length > 2 && exEst.includes(tEst)) || 
+                              (exEst.length > 2 && tEst.includes(exEst));
+            return isSameDate && isSameAmount && isSameEst;
+         });
+         
+         if (isDuplicateDB || isDuplicateSelf) {
+           return false;
+         }
+         
+         processedTxs.push({ date: tDate, amount: tAmount, est: tEst });
+         return true;
+      });
 
+      if (newTxs.length === 0) {
+        throw new Error("Todas as transações deste extrato já estavam cadastradas.");
+      }
+
+      const inserts = newTxs.map(t => {
+         const tAmount = parseFloat(t.amount);
          return {
             user_id: user.id,
             type: t.type,
@@ -74,7 +97,7 @@ function StatementUploadPage() {
             category: t.category,
             date: t.date,
             source: "upload",
-            status: isDuplicate ? "pendente_revisao" : "confirmado",
+            status: "confirmado",
             ai_confidence: t.confidence,
             receipt_url: null,
             sharing_type: t.sharing_type,
