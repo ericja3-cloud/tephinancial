@@ -16,10 +16,12 @@ import { Route as AuthenticatedTransactionsRouteImport } from './routes/_authent
 import { Route as AuthenticatedStatementUploadRouteImport } from './routes/_authenticated/statement-upload'
 import { Route as AuthenticatedSettingsRouteImport } from './routes/_authenticated/settings'
 import { Route as AuthenticatedManualRouteImport } from './routes/_authenticated/manual'
+import { Route as AuthenticatedFaturamentoRouteImport } from './routes/_authenticated/faturamento'
 import { Route as AuthenticatedEmailSetupRouteImport } from './routes/_authenticated/email-setup'
 import { Route as AuthenticatedDashboardRouteImport } from './routes/_authenticated/dashboard'
 import { Route as AuthenticatedCoupleRouteImport } from './routes/_authenticated/couple'
 import { Route as AuthenticatedChatRouteImport } from './routes/_authenticated/chat'
+import { Route as AuthenticatedCartoesRouteImport } from './routes/_authenticated/cartoes'
 import { Route as AuthenticatedCaptureRouteImport } from './routes/_authenticated/capture'
 import { Route as AuthenticatedAgendaRouteImport } from './routes/_authenticated/agenda'
 import { Route as ApiPublicInboundEmailRouteImport } from './routes/api/public/inbound-email'
@@ -60,6 +62,12 @@ const AuthenticatedManualRoute = AuthenticatedManualRouteImport.update({
   path: '/manual',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
+const AuthenticatedFaturamentoRoute =
+  AuthenticatedFaturamentoRouteImport.update({
+    id: '/faturamento',
+    path: '/faturamento',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
 const AuthenticatedEmailSetupRoute = AuthenticatedEmailSetupRouteImport.update({
   id: '/email-setup',
   path: '/email-setup',
@@ -78,6 +86,11 @@ const AuthenticatedCoupleRoute = AuthenticatedCoupleRouteImport.update({
 const AuthenticatedChatRoute = AuthenticatedChatRouteImport.update({
   id: '/chat',
   path: '/chat',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
+const AuthenticatedCartoesRoute = AuthenticatedCartoesRouteImport.update({
+  id: '/cartoes',
+  path: '/cartoes',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
 const AuthenticatedCaptureRoute = AuthenticatedCaptureRouteImport.update({
@@ -101,10 +114,12 @@ export interface FileRoutesByFullPath {
   '/auth': typeof AuthRoute
   '/agenda': typeof AuthenticatedAgendaRoute
   '/capture': typeof AuthenticatedCaptureRoute
+  '/cartoes': typeof AuthenticatedCartoesRoute
   '/chat': typeof AuthenticatedChatRoute
   '/couple': typeof AuthenticatedCoupleRoute
   '/dashboard': typeof AuthenticatedDashboardRoute
   '/email-setup': typeof AuthenticatedEmailSetupRoute
+  '/faturamento': typeof AuthenticatedFaturamentoRoute
   '/manual': typeof AuthenticatedManualRoute
   '/settings': typeof AuthenticatedSettingsRoute
   '/statement-upload': typeof AuthenticatedStatementUploadRoute
@@ -116,10 +131,12 @@ export interface FileRoutesByTo {
   '/auth': typeof AuthRoute
   '/agenda': typeof AuthenticatedAgendaRoute
   '/capture': typeof AuthenticatedCaptureRoute
+  '/cartoes': typeof AuthenticatedCartoesRoute
   '/chat': typeof AuthenticatedChatRoute
   '/couple': typeof AuthenticatedCoupleRoute
   '/dashboard': typeof AuthenticatedDashboardRoute
   '/email-setup': typeof AuthenticatedEmailSetupRoute
+  '/faturamento': typeof AuthenticatedFaturamentoRoute
   '/manual': typeof AuthenticatedManualRoute
   '/settings': typeof AuthenticatedSettingsRoute
   '/statement-upload': typeof AuthenticatedStatementUploadRoute
@@ -133,10 +150,12 @@ export interface FileRoutesById {
   '/auth': typeof AuthRoute
   '/_authenticated/agenda': typeof AuthenticatedAgendaRoute
   '/_authenticated/capture': typeof AuthenticatedCaptureRoute
+  '/_authenticated/cartoes': typeof AuthenticatedCartoesRoute
   '/_authenticated/chat': typeof AuthenticatedChatRoute
   '/_authenticated/couple': typeof AuthenticatedCoupleRoute
   '/_authenticated/dashboard': typeof AuthenticatedDashboardRoute
   '/_authenticated/email-setup': typeof AuthenticatedEmailSetupRoute
+  '/_authenticated/faturamento': typeof AuthenticatedFaturamentoRoute
   '/_authenticated/manual': typeof AuthenticatedManualRoute
   '/_authenticated/settings': typeof AuthenticatedSettingsRoute
   '/_authenticated/statement-upload': typeof AuthenticatedStatementUploadRoute
@@ -150,10 +169,12 @@ export interface FileRouteTypes {
     | '/auth'
     | '/agenda'
     | '/capture'
+    | '/cartoes'
     | '/chat'
     | '/couple'
     | '/dashboard'
     | '/email-setup'
+    | '/faturamento'
     | '/manual'
     | '/settings'
     | '/statement-upload'
@@ -165,10 +186,12 @@ export interface FileRouteTypes {
     | '/auth'
     | '/agenda'
     | '/capture'
+    | '/cartoes'
     | '/chat'
     | '/couple'
     | '/dashboard'
     | '/email-setup'
+    | '/faturamento'
     | '/manual'
     | '/settings'
     | '/statement-upload'
@@ -181,10 +204,12 @@ export interface FileRouteTypes {
     | '/auth'
     | '/_authenticated/agenda'
     | '/_authenticated/capture'
+    | '/_authenticated/cartoes'
     | '/_authenticated/chat'
     | '/_authenticated/couple'
     | '/_authenticated/dashboard'
     | '/_authenticated/email-setup'
+    | '/_authenticated/faturamento'
     | '/_authenticated/manual'
     | '/_authenticated/settings'
     | '/_authenticated/statement-upload'
@@ -250,6 +275,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedManualRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/faturamento': {
+      id: '/_authenticated/faturamento'
+      path: '/faturamento'
+      fullPath: '/faturamento'
+      preLoaderRoute: typeof AuthenticatedFaturamentoRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/_authenticated/email-setup': {
       id: '/_authenticated/email-setup'
       path: '/email-setup'
@@ -276,6 +308,13 @@ declare module '@tanstack/react-router' {
       path: '/chat'
       fullPath: '/chat'
       preLoaderRoute: typeof AuthenticatedChatRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/cartoes': {
+      id: '/_authenticated/cartoes'
+      path: '/cartoes'
+      fullPath: '/cartoes'
+      preLoaderRoute: typeof AuthenticatedCartoesRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
     '/_authenticated/capture': {
@@ -305,10 +344,12 @@ declare module '@tanstack/react-router' {
 interface AuthenticatedRouteRouteChildren {
   AuthenticatedAgendaRoute: typeof AuthenticatedAgendaRoute
   AuthenticatedCaptureRoute: typeof AuthenticatedCaptureRoute
+  AuthenticatedCartoesRoute: typeof AuthenticatedCartoesRoute
   AuthenticatedChatRoute: typeof AuthenticatedChatRoute
   AuthenticatedCoupleRoute: typeof AuthenticatedCoupleRoute
   AuthenticatedDashboardRoute: typeof AuthenticatedDashboardRoute
   AuthenticatedEmailSetupRoute: typeof AuthenticatedEmailSetupRoute
+  AuthenticatedFaturamentoRoute: typeof AuthenticatedFaturamentoRoute
   AuthenticatedManualRoute: typeof AuthenticatedManualRoute
   AuthenticatedSettingsRoute: typeof AuthenticatedSettingsRoute
   AuthenticatedStatementUploadRoute: typeof AuthenticatedStatementUploadRoute
@@ -318,10 +359,12 @@ interface AuthenticatedRouteRouteChildren {
 const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedAgendaRoute: AuthenticatedAgendaRoute,
   AuthenticatedCaptureRoute: AuthenticatedCaptureRoute,
+  AuthenticatedCartoesRoute: AuthenticatedCartoesRoute,
   AuthenticatedChatRoute: AuthenticatedChatRoute,
   AuthenticatedCoupleRoute: AuthenticatedCoupleRoute,
   AuthenticatedDashboardRoute: AuthenticatedDashboardRoute,
   AuthenticatedEmailSetupRoute: AuthenticatedEmailSetupRoute,
+  AuthenticatedFaturamentoRoute: AuthenticatedFaturamentoRoute,
   AuthenticatedManualRoute: AuthenticatedManualRoute,
   AuthenticatedSettingsRoute: AuthenticatedSettingsRoute,
   AuthenticatedStatementUploadRoute: AuthenticatedStatementUploadRoute,
